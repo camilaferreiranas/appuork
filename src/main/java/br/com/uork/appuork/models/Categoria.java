@@ -13,9 +13,6 @@ public class Categoria {
     @Column(nullable = false, unique = true)
     private String nome;
 
-    @Column(length = 300)
-    private String descricao;
-
     public Categoria() {
     }
 
@@ -27,11 +24,11 @@ public class Categoria {
         this.nome = nome;
     }
 
-    public String getDescricao() {
-        return descricao;
+    public Long getId() {
+        return id;
     }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public void setId(Long id) {
+        this.id = id;
     }
 }

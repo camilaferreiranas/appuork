@@ -25,10 +25,10 @@ public class Usuario {
     private String senha;
 
     @Enumerated(EnumType.STRING)
-    private TipoPessoa tipoPessoa; // CPF ou CNPJ
+    private TipoPessoa tipoPessoa;
 
     @Column(unique = true, nullable = false)
-    private String documento; // CPF ou CNPJ
+    private String documento;
 
     private String telefone;
 
@@ -36,6 +36,14 @@ public class Usuario {
     private Endereco endereco;
 
     public Usuario() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Endereco getEndereco() {
