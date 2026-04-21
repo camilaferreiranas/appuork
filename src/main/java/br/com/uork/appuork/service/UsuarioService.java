@@ -30,7 +30,7 @@ public class UsuarioService {
 
     public Usuario criarUsuario(Usuario usuario) {
 
-        documentoValidator.validar(usuario.getTipoPessoa(), usuario.getDocumento());
+        DocumentoValidator.validar(usuario.getTipoPessoa(), usuario.getDocumento());
 
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new RuntimeException("E-mail já cadastrado");
