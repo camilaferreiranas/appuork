@@ -1,6 +1,10 @@
 package br.com.uork.appuork.service;
 
 import br.com.uork.appuork.component.DocumentoValidator;
+import br.com.uork.appuork.dto.usuario.EnderecoResponseDTO;
+import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
+import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
+import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.TipoPessoa;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.UsuarioRepository;
@@ -41,5 +45,78 @@ public class UsuarioService {
         );
 
         return usuarioRepository.save(usuario);
+    }
+
+    public PerfilResponseDTO buscarPerfil(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        Endereco endereco = usuario.getEndereco();
+
+        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
+                endereco.getRua(),
+                endereco.getNumero(),
+                endereco.getBairro(),
+                endereco.getCidade(),
+                endereco.getEstado(),
+                endereco.getCep()
+        );
+
+        return new PerfilResponseDTO(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getSobrenome(),
+                usuario.getEmail(),
+                usuario.getTipoPessoa().name(),
+                usuario.getDocumento(),
+                enderecoResponse
+        );
+    }
+
+    public PerfilResponseDTO atualizarPerfil(String emailAtual, UsuarioUpdateDTO dto) {
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailAtual)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        if (!usuario.getEmail().equalsIgnoreCase(dto.email())
+                && usuarioRepository.existsByEmailIgnoreCase(dto.email())) {
+            throw new RuntimeException("E-mail já cadastrado");
+        }
+
+        usuario.setEmail(dto.email());
+        usuario.setSenha(dto.senha());
+
+        EnderecoResponseDTO enderecoDto = dto.endereco();
+
+        Endereco endereco = new Endereco();
+        endereco.setRua(enderecoDto.rua());
+        endereco.setNumero(enderecoDto.numero());
+        endereco.setBairro(enderecoDto.bairro());
+        endereco.setCidade(enderecoDto.cidade());
+        endereco.setEstado(enderecoDto.estado());
+        endereco.setCep(enderecoDto.cep());
+
+        usuario.setEndereco(endereco);
+
+        usuarioRepository.save(usuario);
+
+        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
+                endereco.getRua(),
+                endereco.getNumero(),
+                endereco.getBairro(),
+                endereco.getCidade(),
+                endereco.getEstado(),
+                endereco.getCep()
+        );
+
+        return new PerfilResponseDTO(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getSobrenome(),
+                usuario.getEmail(),
+                usuario.getTipoPessoa().name(),
+                usuario.getDocumento(),
+                enderecoResponse
+        );
     }
 }

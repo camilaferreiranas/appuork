@@ -1,7 +1,9 @@
 package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
+import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioResponseDTO;
+import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.service.HomeService;
 import br.com.uork.appuork.service.UsuarioService;
@@ -44,5 +46,34 @@ public class UsuarioController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/perfil")
+    public ResponseEntity<ApiResponse<PerfilResponseDTO>> buscarPerfil(@RequestParam String email) {
+        PerfilResponseDTO data = usuarioService.buscarPerfil(email);
+
+        ApiResponse<PerfilResponseDTO> response = new ApiResponse<>(
+                true,
+                "Perfil carregado com sucesso",
+                data
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/perfil")
+    public ResponseEntity<ApiResponse<PerfilResponseDTO>> atualizarPerfil(
+            @RequestParam String email,
+            @RequestBody UsuarioUpdateDTO dto) {
+
+        PerfilResponseDTO data = usuarioService.atualizarPerfil(email, dto);
+
+        ApiResponse<PerfilResponseDTO> response = new ApiResponse<>(
+                true,
+                "Perfil atualizado com sucesso",
+                data
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
