@@ -86,11 +86,14 @@ public class PrestadorServicoService {
                 prestadorSalvo.getAtivo()
         );
     }
-    public Page<PrestadorListDTO> listarPrestadores(Pageable pageable) {
 
-        Page<PrestadorServico> pagina = prestadorServicoRepository.findByAtivoTrue(pageable);
+    public Page<PrestadorListDTO> listarPrestadores(Pageable pageable, Long categoriaId) {
+
+        Page<PrestadorServico> pagina =
+                prestadorServicoRepository.buscarPorCategoria(categoriaId, pageable);
 
         return pagina.map(prestador -> {
+
             List<String> categorias = prestador.getCategorias()
                     .stream()
                     .map(Categoria::getNome)

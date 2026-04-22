@@ -40,33 +40,6 @@ public class PrestadorServicoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<PageResponseDTO<PrestadorListDTO>>> listarPrestadores(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(page, size);
-
-        Page<PrestadorListDTO> pagina = prestadorServicoService.listarPrestadores(pageable);
-
-        PageResponseDTO<PrestadorListDTO> data = new PageResponseDTO<>(
-                pagina.getContent(),
-                pagina.getNumber(),
-                pagina.getSize(),
-                pagina.getTotalElements(),
-                pagina.getTotalPages(),
-                pagina.isFirst(),
-                pagina.isLast()
-        );
-
-        ApiResponse<PageResponseDTO<PrestadorListDTO>> response = new ApiResponse<>(
-                true,
-                "Lista de prestadores",
-                data
-        );
-
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PrestadorDetalheDTO>> buscarPrestadorPorId(@PathVariable Long id) {
@@ -80,5 +53,30 @@ public class PrestadorServicoController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponseDTO<PrestadorListDTO>>> listarPrestadores(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long categoriaId
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<PrestadorListDTO> pagina =
+                prestadorServicoService.listarPrestadores(pageable, categoriaId);
+
+        PageResponseDTO<PrestadorListDTO> data = new PageResponseDTO<>(
+                pagina.getContent(),
+                pagina.getNumber(),
+                pagina.getSize(),
+                pagina.getTotalElements(),
+                pagina.getTotalPages(),
+                pagina.isFirst(),
+                pagina.isLast()
+        );
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Lista de prestadores", data));
     }
 }
