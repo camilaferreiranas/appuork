@@ -1,6 +1,7 @@
 package br.com.uork.appuork.service;
 
 import br.com.uork.appuork.dto.prestadorServico.PrestadorCreateDTO;
+import br.com.uork.appuork.dto.prestadorServico.PrestadorDetalheDTO;
 import br.com.uork.appuork.dto.prestadorServico.PrestadorListDTO;
 import br.com.uork.appuork.dto.prestadorServico.PrestadorResponseDTO;
 import br.com.uork.appuork.models.Categoria;
@@ -102,6 +103,27 @@ public class PrestadorServicoService {
                     prestador.getMediaAvaliacoes()
             );
         });
+    }
+
+    public PrestadorDetalheDTO buscarPrestadorPorId(Long id) {
+
+        PrestadorServico prestador = prestadorServicoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Prestador de serviço não encontrado"));
+
+        List<String> categorias = prestador.getCategorias()
+                .stream()
+                .map(Categoria::getNome)
+                .toList();
+
+        return new PrestadorDetalheDTO(
+                prestador.getId(),
+                prestador.getUsuario().getNome(),
+                prestador.getDescricao(),
+                categorias,
+                prestador.getMediaAvaliacoes(),
+                prestador.getTotalAvaliacoes(),
+                prestador.getAtivo()
+        );
     }
 
 }

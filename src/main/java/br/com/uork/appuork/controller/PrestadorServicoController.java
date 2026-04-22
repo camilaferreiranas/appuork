@@ -3,6 +3,7 @@ package br.com.uork.appuork.controller;
 import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.page.PageResponseDTO;
 import br.com.uork.appuork.dto.prestadorServico.PrestadorCreateDTO;
+import br.com.uork.appuork.dto.prestadorServico.PrestadorDetalheDTO;
 import br.com.uork.appuork.dto.prestadorServico.PrestadorListDTO;
 import br.com.uork.appuork.dto.prestadorServico.PrestadorResponseDTO;
 import br.com.uork.appuork.service.PrestadorServicoService;
@@ -61,6 +62,20 @@ public class PrestadorServicoController {
         ApiResponse<PageResponseDTO<PrestadorListDTO>> response = new ApiResponse<>(
                 true,
                 "Lista de prestadores",
+                data
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<PrestadorDetalheDTO>> buscarPrestadorPorId(@PathVariable Long id) {
+
+        PrestadorDetalheDTO data = prestadorServicoService.buscarPrestadorPorId(id);
+
+        ApiResponse<PrestadorDetalheDTO> response = new ApiResponse<>(
+                true,
+                "Detalhes do prestador carregados com sucesso",
                 data
         );
 
