@@ -1,8 +1,7 @@
 package br.com.uork.appuork.models;
 
+import br.com.uork.appuork.models.enuns.TipoPessoa;
 import jakarta.persistence.*;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "usuario")

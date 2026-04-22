@@ -5,7 +5,6 @@ import br.com.uork.appuork.dto.usuario.EnderecoResponseDTO;
 import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Endereco;
-import br.com.uork.appuork.models.TipoPessoa;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;

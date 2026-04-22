@@ -1,6 +1,6 @@
 package br.com.uork.appuork.component;
 
-import br.com.uork.appuork.models.TipoPessoa;
+import br.com.uork.appuork.models.enuns.TipoPessoa;
 import org.springframework.stereotype.Component;
 
 @Component
