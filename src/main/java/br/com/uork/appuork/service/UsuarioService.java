@@ -8,6 +8,7 @@ import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.TipoPessoa;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.UsuarioRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +18,13 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final DocumentoValidator documentoValidator;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
-                          DocumentoValidator documentoValidator) {
+                          DocumentoValidator documentoValidator, BCryptPasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.documentoValidator = documentoValidator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> listarUsuario(){
@@ -43,6 +46,9 @@ public class UsuarioService {
         usuario.setDocumento(
                 usuario.getDocumento().replaceAll("[^\\d]", "") //Remover mascara
         );
+
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+
 
         return usuarioRepository.save(usuario);
     }
