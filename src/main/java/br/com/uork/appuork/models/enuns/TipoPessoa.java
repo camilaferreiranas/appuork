@@ -1,4 +1,4 @@
-package br.com.uork.appuork.models;
+package br.com.uork.appuork.models.enuns;
 
 public enum TipoPessoa {
     CPF,
