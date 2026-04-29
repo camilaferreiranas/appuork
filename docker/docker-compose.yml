@@ -3,9 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16
-    container_name: postgres
+    container_name: uorkdb
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_DB: uork
       POSTGRES_USER: admin

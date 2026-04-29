@@ -9,10 +9,14 @@ import br.com.uork.appuork.models.enuns.StatusProposta;
 import br.com.uork.appuork.repository.PrestadorServicoRepository;
 import br.com.uork.appuork.repository.PropostaRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PropostaService {
@@ -81,4 +85,21 @@ public class PropostaService {
                 propostaSalva.getDataCriacao()
         );
     }
+
+
+
+    public Page<PropostaResponseDTO> listarPropostas(Integer page, Integer size, String direction, String orderBy) {
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.Direction.valueOf(direction), orderBy);
+
+        return propostaRepository.findAll(pageRequest).map(this::toPropostaResponse);
+    }
+
+
+    private PropostaResponseDTO toPropostaResponse(Proposta proposta) {
+        return new PropostaResponseDTO(proposta.getId(), proposta.getUsuario().getNome(),
+                proposta.getPrestadorServico().getUsuario().getNome(), proposta.getDescricao(), proposta.getValor(),
+                proposta.getStatus().name(), proposta.getDataCriacao());
+    }
+
 }

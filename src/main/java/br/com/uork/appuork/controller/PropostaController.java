@@ -4,6 +4,7 @@ import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.service.PropostaService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,5 +31,15 @@ public class PropostaController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
+    @GetMapping("/listar")
+    public ResponseEntity<Page<PropostaResponseDTO>> listarTodas(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                 @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                                                 @RequestParam(value = "orderBy", defaultValue = "title") String orderBy,
+                                                                 @RequestParam(value = "direction", defaultValue = "ASC") String direction) {
+
+        return ResponseEntity.ok(propostaService.listarPropostas(page, size, direction, orderBy));
     }
 }
