@@ -1,6 +1,8 @@
 package br.com.uork.appuork.service;
 
+import br.com.uork.appuork.dto.demanda.DemandaResumoDTO;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
+import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.models.PrestadorServico;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class PropostaService {
@@ -180,6 +183,37 @@ public class PropostaService {
                 proposta.getValor(),
                 proposta.getStatus().name(),
                 proposta.getDataCriacao()
+        );
+    }
+
+    public listaDemandaDRO listaDemanda(Long prestadorId) {
+
+        LocalDateTime dataInicio = LocalDateTime.now().minusDays(30);
+
+        Integer novas = propostaRepository.contarNovasDemandas(prestadorId);
+        Integer andamento = propostaRepository.contarEmAndamento(prestadorId);
+        Integer concluido = propostaRepository.contarDemandasConcluida(prestadorId);
+        BigDecimal faturamento = propostaRepository
+                .faturamentoUltimos30Dias(prestadorId, dataInicio);
+
+
+        List<Proposta> propostas = propostaRepository.buscarDemandasProximas(prestadorId);
+
+        List<DemandaResumoDTO> demandas = propostas.stream()
+                .map(p -> new DemandaResumoDTO(
+                        p.getId(),
+                        p.getTitulo(),
+                        p.getStatus(),
+                        p.getValor()
+                ))
+                .toList();
+
+        return new listaDemandaDRO(
+                novas,
+                andamento,
+                concluido,
+                faturamento,
+                demandas
         );
     }
 }

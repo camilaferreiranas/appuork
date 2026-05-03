@@ -2,6 +2,7 @@ package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
+import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.service.PropostaService;
@@ -98,5 +99,17 @@ public class PropostaController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/prestadores/{id}")
+    public ResponseEntity<ApiResponse<listaDemandaDRO>> homePrestador(@PathVariable Long id) {
+
+        listaDemandaDRO data = propostaService.listaDemanda(id);
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Lista de demanda do prestador",
+                data
+        ));
     }
 }
