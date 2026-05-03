@@ -1,5 +1,6 @@
 package br.com.uork.appuork.service;
 
+import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.models.PrestadorServico;
@@ -64,6 +65,7 @@ public class PropostaService {
         Proposta proposta = new Proposta();
         proposta.setUsuario(usuario);
         proposta.setPrestadorServico(prestador);
+        proposta.setTitulo(dto.titulo());
         proposta.setDescricao(dto.descricao());
         proposta.setValor(dto.valor());
         proposta.setStatus(StatusProposta.PENDENTE);
@@ -79,6 +81,105 @@ public class PropostaService {
                 propostaSalva.getValor(),
                 propostaSalva.getStatus().name(),
                 propostaSalva.getDataCriacao()
+        );
+    }
+
+    public PropostaResponseDTO aceitarProposta(Long propostaId, String email) {
+
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        if (!proposta.getPrestadorServico().getUsuario().getEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Apenas o prestador pode aceitar a proposta");
+        }
+
+        if (proposta.getStatus() != StatusProposta.PENDENTE) {
+            throw new RuntimeException("Somente propostas pendentes podem ser aceitas");
+        }
+
+        proposta.setStatus(StatusProposta.ACEITA);
+
+        return montarResponse(propostaRepository.save(proposta));
+    }
+
+    public PropostaResponseDTO recusarProposta(Long propostaId, String email) {
+
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        if (!proposta.getPrestadorServico().getUsuario().getEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Apenas o prestador pode recusar a proposta");
+        }
+
+        if (proposta.getStatus() != StatusProposta.PENDENTE) {
+            throw new RuntimeException("Somente propostas pendentes podem ser recusar");
+        }
+
+        proposta.setStatus(StatusProposta.RECUSADA);
+
+        return montarResponse(propostaRepository.save(proposta));
+    }
+
+    public DetalheDemandaDTO buscarDetalheDemanda(Long propostaId) {
+
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        return new DetalheDemandaDTO(
+                proposta.getId(),
+                proposta.getTitulo(),
+                proposta.getUsuario().getNome(),
+                proposta.getValor(),
+                null, // distância será calculada futuramente
+                proposta.getDescricao(),
+                proposta.getPrestadorServico().getUsuario().getNome()
+        );
+    }
+
+    public PropostaResponseDTO cancelarProposta(Long propostaId, String email) {
+
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        if (!proposta.getUsuario().getEmail().equalsIgnoreCase(email)) {
+            throw new RuntimeException("Apenas o usuário que enviou a proposta pode cancelá-la");
+        }
+
+        if (proposta.getStatus() != StatusProposta.PENDENTE) {
+            throw new RuntimeException("Somente propostas pendentes podem ser canceladas");
+        }
+
+        proposta.setStatus(StatusProposta.CANCELADA);
+
+        Proposta propostaSalva = propostaRepository.save(proposta);
+
+        return montarResponse(propostaSalva);
+    }
+
+    public PropostaResponseDTO finalizarProposta(Long propostaId) {
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        if (proposta.getStatus() != StatusProposta.ACEITA) {
+            throw new RuntimeException("Somente propostas aceitas podem ser finalizadas");
+        }
+
+        proposta.setStatus(StatusProposta.FINALIZADA);
+
+        Proposta propostaSalva = propostaRepository.save(proposta);
+
+        return montarResponse(propostaSalva);
+    }
+
+    private PropostaResponseDTO montarResponse(Proposta proposta) {
+        return new PropostaResponseDTO(
+                proposta.getId(),
+                proposta.getUsuario().getNome(),
+                proposta.getPrestadorServico().getUsuario().getNome(),
+                proposta.getDescricao(),
+                proposta.getValor(),
+                proposta.getStatus().name(),
+                proposta.getDataCriacao()
         );
     }
 }
