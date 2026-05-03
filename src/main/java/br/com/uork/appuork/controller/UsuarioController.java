@@ -2,10 +2,10 @@ package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
+import br.com.uork.appuork.dto.usuario.UsuarioCriacaoDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioResponseDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Usuario;
-import br.com.uork.appuork.service.HomeService;
 import br.com.uork.appuork.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +29,9 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> criar(@RequestBody Usuario usuario) {
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> criar(@RequestBody UsuarioCriacaoDTO dto) {
 
-        Usuario usuarioCriado = usuarioService.criarUsuario(usuario);
+        Usuario usuarioCriado = usuarioService.criarUsuario(dto);
 
         UsuarioResponseDTO data = new UsuarioResponseDTO(
                 usuarioCriado.getId(),

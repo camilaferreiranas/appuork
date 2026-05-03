@@ -30,9 +30,10 @@ public class LoginServiceImpl implements LoginService{
     @Override
     public LoginResponse login(LoginRequest request) {
 
-        Usuario usuario = repository.findByEmail(request.email()).orElseThrow(() ->
-                new BadCredentialsException("Usuário ou senha inválido"));
-        if(!passwordEncoder.matches(request.password(), usuario.getSenha())) {
+
+        Usuario usuario = repository.findByEmailIgnoreCase(request.email()).orElseThrow(() ->
+                new BadCredentialsException("Usuário  inválido"));
+        if(!passwordEncoder.matches(request.senha(), usuario.getSenha())) {
             throw new BadCredentialsException("Usuário ou senha inválido");
         }
 
@@ -40,7 +41,7 @@ public class LoginServiceImpl implements LoginService{
         var expiresIn = 3600L;
         var claims = JwtClaimsSet.builder()
                 .issuer("appuork")
-                .subject(usuario.getId().toString())
+                .subject(usuario.getEmail())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
                 .build();

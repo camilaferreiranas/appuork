@@ -3,6 +3,7 @@ package br.com.uork.appuork.service;
 import br.com.uork.appuork.component.DocumentoValidator;
 import br.com.uork.appuork.dto.usuario.EnderecoResponseDTO;
 import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
+import br.com.uork.appuork.dto.usuario.UsuarioCriacaoDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.Usuario;
@@ -30,24 +31,37 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
-    public Usuario criarUsuario(Usuario usuario) {
+    public Usuario criarUsuario(UsuarioCriacaoDTO dto) {
 
-        DocumentoValidator.validar(usuario.getTipoPessoa(), usuario.getDocumento());
+        DocumentoValidator.validar(dto.tipoPessoa(), dto.documento());
 
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+        if (usuarioRepository.existsByEmail(dto.email())) {
             throw new RuntimeException("E-mail já cadastrado");
         }
 
-        if (usuarioRepository.existsByDocumento(usuario.getDocumento())) {
+        if (usuarioRepository.existsByDocumento(dto.documento())) {
             throw new RuntimeException("Documento já cadastrado");
         }
 
-        usuario.setDocumento(
-                usuario.getDocumento().replaceAll("[^\\d]", "") //Remover mascara
-        );
+        Usuario usuario = new Usuario();
+        usuario.setNome(dto.nome());
+        usuario.setSobrenome(dto.sobrenome());
+        usuario.setEmail(dto.email());
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuario.setTipoPessoa(dto.tipoPessoa());
+        usuario.setDocumento(dto.documento().replaceAll("[^\\d]", ""));
+        usuario.setTelefone(dto.telefone());
 
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-
+        if (dto.endereco() != null) {
+            Endereco endereco = new Endereco();
+            endereco.setRua(dto.endereco().rua());
+            endereco.setNumero(dto.endereco().numero());
+            endereco.setBairro(dto.endereco().bairro());
+            endereco.setCidade(dto.endereco().cidade());
+            endereco.setEstado(dto.endereco().estado());
+            endereco.setCep(dto.endereco().cep());
+            usuario.setEndereco(endereco);
+        }
 
         return usuarioRepository.save(usuario);
     }

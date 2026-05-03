@@ -4,6 +4,7 @@ import br.com.uork.appuork.dto.common.ApiErros;
 import br.com.uork.appuork.exception.DocumentoInvalidoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -13,10 +14,21 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalControllerAdvice {
 
-
     @ExceptionHandler(DocumentoInvalidoException.class)
     public ResponseEntity<ApiErros> handleDocumentoInvalido(RuntimeException e) {
         var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.BAD_REQUEST.value(), LocalDateTime.now());
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiErros> handleBadCredentials(BadCredentialsException e) {
+        var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now());
+        return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErros> handleRuntimeException(RuntimeException e) {
+        var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR.value(), LocalDateTime.now());
+        return new ResponseEntity<>(errors, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
