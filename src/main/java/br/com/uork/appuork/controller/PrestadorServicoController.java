@@ -3,10 +3,7 @@ package br.com.uork.appuork.controller;
 import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.page.PageResponseDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorCreateDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorDetalheDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorListDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorResponseDTO;
+import br.com.uork.appuork.dto.prestadorServico.*;
 import br.com.uork.appuork.service.PrestadorServicoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -79,6 +76,22 @@ public class PrestadorServicoController {
         );
 
         return ResponseEntity.ok(new ApiResponse<>(true, "Lista de prestadores", data));
+    }
+
+    @GetMapping("/prestadores/{id}/perfil")
+    public ResponseEntity<ApiResponse<PerfilPrestadorDTO>> perfil(
+            @PathVariable Long id) {
+
+        PerfilPrestadorDTO data =
+                prestadorServicoService.buscarPerfil(id);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Perfil carregado com sucesso",
+                        data
+                )
+        );
     }
 
 

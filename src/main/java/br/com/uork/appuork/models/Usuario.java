@@ -2,6 +2,11 @@ package br.com.uork.appuork.models;
 
 import br.com.uork.appuork.models.enuns.TipoPessoa;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuario")
@@ -30,6 +35,10 @@ public class Usuario {
     private String documento;
 
     private String telefone;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant dataCriacao;
 
     @Embedded
     private Endereco endereco;
@@ -107,5 +116,13 @@ public class Usuario {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public Instant getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(Instant dataCriacao) {
+        this.dataCriacao = dataCriacao;
     }
 }

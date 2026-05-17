@@ -60,5 +60,26 @@ public interface PropostaRepository extends JpaRepository<Proposta, Long> {
 """)
     Integer contarDemandasConcluida(Long prestadorId);
 
+    @Query("""
+    SELECT COALESCE(SUM(p.valor), 0)
+    FROM Proposta p
+    WHERE p.prestadorServico.id = :prestadorId
+    AND p.status = 'FINALIZADA'
+""")
+    BigDecimal totalGanho(Long prestadorId);
 
+    @Query("""
+    SELECT COUNT(p)
+    FROM Proposta p
+    WHERE p.prestadorServico.id = :prestadorId
+    AND p.status = 'FINALIZADA'
+""")
+    Long totalConcluidas(Long prestadorId);
+
+    @Query("""
+    SELECT COUNT(p)
+    FROM Proposta p
+    WHERE p.prestadorServico.id = :prestadorId
+""")
+    Long totalDemandas(Long prestadorId);
 }
