@@ -1,4 +1,4 @@
-INSERT INTO categoria (nome)
+/*INSERT INTO categoria (nome)
 SELECT 'Eletrônica'
     WHERE NOT EXISTS (SELECT 1 FROM categoria WHERE nome = 'Eletrônica');
 
@@ -28,4 +28,4 @@ SELECT 'Jardinagem'
 
 INSERT INTO categoria (nome)
 SELECT 'Reparo'
-    WHERE NOT EXISTS (SELECT 1 FROM categoria WHERE nome = 'Reparo');
+    WHERE NOT EXISTS (SELECT 1 FROM categoria WHERE nome = 'Reparo');*/

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/usuario")
 public class UsuarioController {
@@ -33,6 +35,8 @@ public class UsuarioController {
 
         Usuario usuarioCriado = usuarioService.criarUsuario(usuario);
 
+        System.out.println("AQUI");
+
         UsuarioResponseDTO data = new UsuarioResponseDTO(
                 usuarioCriado.getId(),
                 usuarioCriado.getNome(),
@@ -51,6 +55,7 @@ public class UsuarioController {
     @GetMapping("/perfil")
     public ResponseEntity<ApiResponse<PerfilResponseDTO>> buscarPerfil(@RequestParam String email) {
         PerfilResponseDTO data = usuarioService.buscarPerfil(email);
+
 
         ApiResponse<PerfilResponseDTO> response = new ApiResponse<>(
                 true,

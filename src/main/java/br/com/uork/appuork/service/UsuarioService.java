@@ -50,16 +50,31 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        Endereco endereco = usuario.getEndereco();
 
-        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
-                endereco.getRua(),
-                endereco.getNumero(),
-                endereco.getBairro(),
-                endereco.getCidade(),
-                endereco.getEstado(),
-                endereco.getCep()
-        );
+
+
+        Endereco endereco = usuario.getEndereco();
+        if (usuario.getEndereco() != null){
+            EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
+                    endereco.getRua(),
+                    endereco.getNumero(),
+                    endereco.getBairro(),
+                    endereco.getCidade(),
+                    endereco.getEstado(),
+                    endereco.getCep()
+            );
+
+            return new PerfilResponseDTO(
+                    usuario.getId(),
+                    usuario.getNome(),
+                    usuario.getSobrenome(),
+                    usuario.getEmail(),
+                    usuario.getTipoPessoa().name(),
+                    usuario.getDocumento(),
+                    enderecoResponse
+            );
+        }
+
 
         return new PerfilResponseDTO(
                 usuario.getId(),
@@ -68,7 +83,7 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
-                enderecoResponse
+                null
         );
     }
 
