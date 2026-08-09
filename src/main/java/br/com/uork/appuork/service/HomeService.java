@@ -2,7 +2,6 @@ package br.com.uork.appuork.service;
 
 import br.com.uork.appuork.dto.home.CategoriaResponseDTO;
 import br.com.uork.appuork.dto.home.HomeResponseDTO;
-import br.com.uork.appuork.models.Categoria;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.CategoriaRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
@@ -15,6 +14,7 @@ public class HomeService {
 
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
+
 
     public HomeService(UsuarioRepository usuarioRepository,
                        CategoriaRepository categoriaRepository) {
@@ -37,4 +37,6 @@ public class HomeService {
 
         return new HomeResponseDTO(usuario.getNome(), categorias);
     }
+
+
 }

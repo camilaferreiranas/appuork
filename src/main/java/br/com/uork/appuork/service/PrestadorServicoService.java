@@ -1,20 +1,24 @@
 package br.com.uork.appuork.service;
 
-import br.com.uork.appuork.dto.prestadorServico.PrestadorCreateDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorDetalheDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorListDTO;
-import br.com.uork.appuork.dto.prestadorServico.PrestadorResponseDTO;
+import br.com.uork.appuork.dto.prestadorServico.*;
+import br.com.uork.appuork.dto.servico.ServicoOferecidoDTO;
 import br.com.uork.appuork.models.Categoria;
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.CategoriaRepository;
 import br.com.uork.appuork.repository.PrestadorServicoRepository;
+import br.com.uork.appuork.repository.PropostaRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class PrestadorServicoService {
@@ -22,13 +26,16 @@ public class PrestadorServicoService {
     private final PrestadorServicoRepository prestadorServicoRepository;
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
+    private final PropostaRepository propostaRepository;
 
     public PrestadorServicoService(PrestadorServicoRepository prestadorServicoRepository,
                                    UsuarioRepository usuarioRepository,
-                                   CategoriaRepository categoriaRepository) {
+                                   CategoriaRepository categoriaRepository,
+                                   PropostaRepository propostaRepository) {
         this.prestadorServicoRepository = prestadorServicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
+        this.propostaRepository = propostaRepository;
     }
 
     public PrestadorResponseDTO criarPrestador(String email, PrestadorCreateDTO dto) {
@@ -126,6 +133,61 @@ public class PrestadorServicoService {
                 prestador.getMediaAvaliacoes(),
                 prestador.getTotalAvaliacoes(),
                 prestador.getAtivo()
+        );
+    }
+
+    public PerfilPrestadorDTO buscarPerfil(Long prestadorId) {
+
+        PrestadorServico prestador = prestadorServicoRepository.findById(prestadorId)
+                .orElseThrow(() -> new RuntimeException("Prestador não encontrado"));
+
+        BigDecimal totalGanho = propostaRepository.totalGanho(prestadorId);
+
+        Long concluidas = propostaRepository.totalConcluidas(prestadorId);
+        Long totalDemandas = propostaRepository.totalDemandas(prestadorId);
+
+        String dataCriacao = DateTimeFormatter.ofPattern("MMMM 'de' yyyy")
+                .withLocale(new Locale("pt", "BR"))
+                .format(
+                        prestador.getUsuario()
+                                .getDataCriacao()
+                                .atZone(ZoneId.systemDefault())
+                );
+
+        double percentualConclusao = 0.0;
+
+        if (totalDemandas > 0) {
+            percentualConclusao =
+                    ((double) concluidas / totalDemandas) * 100;
+        }
+
+        List<ServicoOferecidoDTO> servicos = prestador.getCategorias()
+                .stream()
+                .map(categoria -> new ServicoOferecidoDTO(
+                        categoria.getNome(),
+                        "Serviço especializado em " + categoria.getNome(),
+                        BigDecimal.ZERO,
+                        prestador.getMediaAvaliacoes()
+                ))
+                .toList();
+
+        return new PerfilPrestadorDTO(
+                prestador.getId(),
+                prestador.getUsuario().getNome(),
+                prestador.getDescricao(),
+                prestador.getUsuario().getEndereco().getCidade(),
+                prestador.getUsuario().getEndereco().getEstado(),
+                dataCriacao,
+
+                prestador.getMediaAvaliacoes(),
+                prestador.getTotalAvaliacoes(),
+                percentualConclusao,
+                totalGanho,
+
+                prestador.getUsuario().getTelefone(),
+                prestador.getUsuario().getEmail(),
+
+                servicos
         );
     }
 

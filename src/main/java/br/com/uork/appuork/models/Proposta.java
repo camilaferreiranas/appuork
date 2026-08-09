@@ -22,6 +22,9 @@ public class Proposta {
     @JoinColumn(name = "prestador_id", nullable = false)
     private PrestadorServico prestadorServico;
 
+    @Column(nullable = false)
+    private String titulo;
+
     @Column(nullable = false, length = 500)
     private String descricao;
 
@@ -57,6 +60,14 @@ public class Proposta {
 
     public void setPrestadorServico(PrestadorServico prestadorServico) {
         this.prestadorServico = prestadorServico;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
     }
 
     public String getDescricao() {

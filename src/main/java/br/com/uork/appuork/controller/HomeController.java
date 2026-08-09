@@ -2,10 +2,7 @@ package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.dto.home.HomeResponseDTO;
 import br.com.uork.appuork.service.HomeService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/home")
@@ -21,6 +18,8 @@ public class HomeController {
     public HomeResponseDTO buscarDadosHome(@RequestParam String email) {
         return homeService.buscarDadosHome(email);
     }
+
+
 }
 
 
