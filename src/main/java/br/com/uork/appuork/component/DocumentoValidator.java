@@ -18,21 +18,23 @@ public class DocumentoValidator {
 
     public static void validar(TipoPessoa tipo, String documento) {
 
-        if (tipo == TipoPessoa.CPF) {
-            validarCPF(documento);
-        } else {
-            validarCNPJ(documento);
+        boolean valido = (tipo == TipoPessoa.CPF)
+                ? validarCPF(documento)
+                : validarCNPJ(documento);
+
+        if (!valido) {
+            String mensagem = (tipo == TipoPessoa.CPF) ? "Cpf inválido" : "Cnpj inválido";
+            throw new DocumentoInvalidoException(mensagem);
         }
     }
 
     private static boolean validarCPF(String cpf) {
-        if( cpf == null) throw new DocumentoInvalidoException("Cpf inválido");
+        if (cpf == null) return false;
         return CPF_PATTERN.matcher(cpf).matches();
     }
 
-
     private static boolean validarCNPJ(String cnpj) {
-        if (cnpj == null) throw  new DocumentoInvalidoException("Cnpj inválido");
+        if (cnpj == null) return false;
         return CNPJ_PATTERN.matcher(cnpj).matches();
     }
 }

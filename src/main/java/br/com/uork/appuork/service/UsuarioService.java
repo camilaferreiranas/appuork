@@ -70,17 +70,6 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        Endereco endereco = usuario.getEndereco();
-
-        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
-                endereco.getRua(),
-                endereco.getNumero(),
-                endereco.getBairro(),
-                endereco.getCidade(),
-                endereco.getEstado(),
-                endereco.getCep()
-        );
-
         return new PerfilResponseDTO(
                 usuario.getId(),
                 usuario.getNome(),
@@ -88,7 +77,22 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
-                enderecoResponse
+                toEnderecoResponse(usuario.getEndereco())
+        );
+    }
+
+    private EnderecoResponseDTO toEnderecoResponse(Endereco endereco) {
+        if (endereco == null) {
+            return new EnderecoResponseDTO(null, null, null, null, null, null);
+        }
+
+        return new EnderecoResponseDTO(
+                endereco.getRua(),
+                endereco.getNumero(),
+                endereco.getBairro(),
+                endereco.getCidade(),
+                endereco.getEstado(),
+                endereco.getCep()
         );
     }
 
@@ -103,30 +107,26 @@ public class UsuarioService {
         }
 
         usuario.setEmail(dto.email());
-        usuario.setSenha(dto.senha());
 
-        EnderecoResponseDTO enderecoDto = dto.endereco();
+        if (dto.senha() != null && !dto.senha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        }
 
-        Endereco endereco = new Endereco();
-        endereco.setRua(enderecoDto.rua());
-        endereco.setNumero(enderecoDto.numero());
-        endereco.setBairro(enderecoDto.bairro());
-        endereco.setCidade(enderecoDto.cidade());
-        endereco.setEstado(enderecoDto.estado());
-        endereco.setCep(enderecoDto.cep());
+        if (dto.endereco() != null) {
+            EnderecoResponseDTO enderecoDto = dto.endereco();
 
-        usuario.setEndereco(endereco);
+            Endereco endereco = new Endereco();
+            endereco.setRua(enderecoDto.rua());
+            endereco.setNumero(enderecoDto.numero());
+            endereco.setBairro(enderecoDto.bairro());
+            endereco.setCidade(enderecoDto.cidade());
+            endereco.setEstado(enderecoDto.estado());
+            endereco.setCep(enderecoDto.cep());
+
+            usuario.setEndereco(endereco);
+        }
 
         usuarioRepository.save(usuario);
-
-        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
-                endereco.getRua(),
-                endereco.getNumero(),
-                endereco.getBairro(),
-                endereco.getCidade(),
-                endereco.getEstado(),
-                endereco.getCep()
-        );
 
         return new PerfilResponseDTO(
                 usuario.getId(),
@@ -135,7 +135,7 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
-                enderecoResponse
+                toEnderecoResponse(usuario.getEndereco())
         );
     }
 }
