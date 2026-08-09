@@ -9,6 +9,8 @@ import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,8 +53,9 @@ public class UsuarioController {
     }
 
     @GetMapping("/perfil")
-    public ResponseEntity<ApiResponse<PerfilResponseDTO>> buscarPerfil(@RequestParam String email) {
-        PerfilResponseDTO data = usuarioService.buscarPerfil(email);
+    public ResponseEntity<ApiResponse<PerfilResponseDTO>> buscarPerfil(
+            @AuthenticationPrincipal Jwt jwt) {
+        PerfilResponseDTO data = usuarioService.buscarPerfil(jwt.getSubject());
 
 
         ApiResponse<PerfilResponseDTO> response = new ApiResponse<>(
@@ -66,10 +69,10 @@ public class UsuarioController {
 
     @PutMapping("/perfil")
     public ResponseEntity<ApiResponse<PerfilResponseDTO>> atualizarPerfil(
-            @RequestParam String email,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody UsuarioUpdateDTO dto) {
 
-        PerfilResponseDTO data = usuarioService.atualizarPerfil(email, dto);
+        PerfilResponseDTO data = usuarioService.atualizarPerfil(jwt.getSubject(), dto);
 
         ApiResponse<PerfilResponseDTO> response = new ApiResponse<>(
                 true,

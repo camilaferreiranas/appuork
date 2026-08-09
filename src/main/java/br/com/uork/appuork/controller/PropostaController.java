@@ -8,6 +8,8 @@ import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.service.PropostaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*")
@@ -22,9 +24,11 @@ public class PropostaController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<PropostaResponseDTO>> criarProposta(@RequestBody PropostaCreateDTO dto) {
+    public ResponseEntity<ApiResponse<PropostaResponseDTO>> criarProposta(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody PropostaCreateDTO dto) {
 
-        PropostaResponseDTO data = propostaService.criarProposta(dto);
+        PropostaResponseDTO data = propostaService.criarProposta(dto, jwt.getSubject());
 
         ApiResponse<PropostaResponseDTO> response = new ApiResponse<>(
                 true,

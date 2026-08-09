@@ -33,9 +33,9 @@ public class PropostaService {
         this.prestadorServicoRepository = prestadorServicoRepository;
     }
 
-    public PropostaResponseDTO criarProposta(PropostaCreateDTO dto) {
+    public PropostaResponseDTO criarProposta(PropostaCreateDTO dto, String emailUsuario) {
 
-        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(dto.email())
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         PrestadorServico prestador = prestadorServicoRepository.findById(dto.prestadorId())
