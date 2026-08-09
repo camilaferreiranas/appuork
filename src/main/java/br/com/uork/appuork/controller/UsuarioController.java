@@ -35,8 +35,6 @@ public class UsuarioController {
 
         Usuario usuarioCriado = usuarioService.criarUsuario(dto);
 
-        System.out.println("AQUI");
-
         UsuarioResponseDTO data = new UsuarioResponseDTO(
                 usuarioCriado.getId(),
                 usuarioCriado.getNome(),

@@ -3,10 +3,12 @@ package br.com.uork.appuork.service;
 import br.com.uork.appuork.component.DocumentoValidator;
 import br.com.uork.appuork.dto.usuario.EnderecoResponseDTO;
 import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
+import br.com.uork.appuork.dto.usuario.UsuarioCriacaoDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.UsuarioRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,32 +18,52 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final DocumentoValidator documentoValidator;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
-                          DocumentoValidator documentoValidator) {
+                          DocumentoValidator documentoValidator,
+                          BCryptPasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.documentoValidator = documentoValidator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> listarUsuario(){
         return usuarioRepository.findAll();
     }
 
-    public Usuario criarUsuario(Usuario usuario) {
+    public Usuario criarUsuario(UsuarioCriacaoDTO dto) {
 
-        documentoValidator.validar(usuario.getTipoPessoa(), usuario.getDocumento());
+        documentoValidator.validar(dto.tipoPessoa(), dto.documento());
 
-        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+        if (usuarioRepository.existsByEmail(dto.email())) {
             throw new RuntimeException("E-mail já cadastrado");
         }
 
-        if (usuarioRepository.existsByDocumento(usuario.getDocumento())) {
+        String documento = dto.documento().replaceAll("[^\\d]", "");
+        if (usuarioRepository.existsByDocumento(documento)) {
             throw new RuntimeException("Documento já cadastrado");
         }
 
-        usuario.setDocumento(
-                usuario.getDocumento().replaceAll("[^\\d]", "") //Remover mascara
-        );
+        Usuario usuario = new Usuario();
+        usuario.setNome(dto.nome());
+        usuario.setSobrenome(dto.sobrenome());
+        usuario.setEmail(dto.email());
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuario.setTipoPessoa(dto.tipoPessoa());
+        usuario.setDocumento(documento);
+        usuario.setTelefone(dto.telefone());
+
+        if (dto.endereco() != null) {
+            Endereco endereco = new Endereco();
+            endereco.setRua(dto.endereco().rua());
+            endereco.setNumero(dto.endereco().numero());
+            endereco.setBairro(dto.endereco().bairro());
+            endereco.setCidade(dto.endereco().cidade());
+            endereco.setEstado(dto.endereco().estado());
+            endereco.setCep(dto.endereco().cep());
+            usuario.setEndereco(endereco);
+        }
 
         return usuarioRepository.save(usuario);
     }
@@ -50,17 +72,6 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        Endereco endereco = usuario.getEndereco();
-
-        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
-                endereco.getRua(),
-                endereco.getNumero(),
-                endereco.getBairro(),
-                endereco.getCidade(),
-                endereco.getEstado(),
-                endereco.getCep()
-        );
-
         return new PerfilResponseDTO(
                 usuario.getId(),
                 usuario.getNome(),
@@ -68,7 +79,22 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
-                enderecoResponse
+                toEnderecoResponse(usuario.getEndereco())
+        );
+    }
+
+    private EnderecoResponseDTO toEnderecoResponse(Endereco endereco) {
+        if (endereco == null) {
+            return new EnderecoResponseDTO(null, null, null, null, null, null);
+        }
+
+        return new EnderecoResponseDTO(
+                endereco.getRua(),
+                endereco.getNumero(),
+                endereco.getBairro(),
+                endereco.getCidade(),
+                endereco.getEstado(),
+                endereco.getCep()
         );
     }
 
@@ -83,30 +109,25 @@ public class UsuarioService {
         }
 
         usuario.setEmail(dto.email());
-        usuario.setSenha(dto.senha());
+        if (dto.senha() != null && !dto.senha().isBlank()) {
+            usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        }
 
-        EnderecoResponseDTO enderecoDto = dto.endereco();
+        if (dto.endereco() != null) {
+            EnderecoResponseDTO enderecoDto = dto.endereco();
 
-        Endereco endereco = new Endereco();
-        endereco.setRua(enderecoDto.rua());
-        endereco.setNumero(enderecoDto.numero());
-        endereco.setBairro(enderecoDto.bairro());
-        endereco.setCidade(enderecoDto.cidade());
-        endereco.setEstado(enderecoDto.estado());
-        endereco.setCep(enderecoDto.cep());
+            Endereco endereco = new Endereco();
+            endereco.setRua(enderecoDto.rua());
+            endereco.setNumero(enderecoDto.numero());
+            endereco.setBairro(enderecoDto.bairro());
+            endereco.setCidade(enderecoDto.cidade());
+            endereco.setEstado(enderecoDto.estado());
+            endereco.setCep(enderecoDto.cep());
 
-        usuario.setEndereco(endereco);
+            usuario.setEndereco(endereco);
+        }
 
         usuarioRepository.save(usuario);
-
-        EnderecoResponseDTO enderecoResponse = new EnderecoResponseDTO(
-                endereco.getRua(),
-                endereco.getNumero(),
-                endereco.getBairro(),
-                endereco.getCidade(),
-                endereco.getEstado(),
-                endereco.getCep()
-        );
 
         return new PerfilResponseDTO(
                 usuario.getId(),
@@ -115,7 +136,7 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
-                enderecoResponse
+                toEnderecoResponse(usuario.getEndereco())
         );
     }
 }

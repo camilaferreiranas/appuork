@@ -1,9 +1,69 @@
 package br.com.uork.appuork.repository;
 
+import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Proposta;
+import br.com.uork.appuork.models.enuns.StatusProposta;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface PropostaRepository extends JpaRepository<Proposta, Long> {
+
+    @Query("SELECT SUM(p.valor) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status")
+    BigDecimal somarValorPorStatus(@Param("prestador") PrestadorServico prestador,
+                                   @Param("status") StatusProposta status);
+
+    @Query("SELECT SUM(p.valor) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status AND p.dataCriacao >= :inicio")
+    BigDecimal somarValorPorStatusEPeriodo(@Param("prestador") PrestadorServico prestador,
+                                           @Param("status") StatusProposta status,
+                                           @Param("inicio") LocalDateTime inicio);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status")
+    Integer contarPorStatus(@Param("prestador") PrestadorServico prestador,
+                            @Param("status") StatusProposta status);
+
+    @Query("SELECT YEAR(p.dataCriacao), MONTH(p.dataCriacao), SUM(p.valor) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status GROUP BY YEAR(p.dataCriacao), MONTH(p.dataCriacao) ORDER BY YEAR(p.dataCriacao), MONTH(p.dataCriacao)")
+    List<Object[]> evolucaoMensal(@Param("prestador") PrestadorServico prestador,
+                                  @Param("status") StatusProposta status);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.dataCriacao >= :inicio")
+    Integer contarDemandas(@Param("prestador") PrestadorServico prestador,
+                           @Param("inicio") LocalDateTime inicio);
+
+    @Query("SELECT p FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status ORDER BY p.dataCriacao DESC")
+    List<Proposta> transacoesRecentes(@Param("prestador") PrestadorServico prestador,
+                                      @Param("status") StatusProposta status,
+                                      Pageable pageable);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'PENDENTE'")
+    Integer contarNovasDemandas(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'ACEITA'")
+    Integer contarEmAndamento(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COALESCE(SUM(p.valor), 0) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'FINALIZADA' AND p.dataCriacao >= :dataInicio")
+    BigDecimal faturamentoUltimos30Dias(@Param("prestadorId") Long prestadorId,
+                                        @Param("dataInicio") LocalDateTime dataInicio);
+
+    @Query("SELECT p FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status IN ('PENDENTE', 'ACEITA') ORDER BY p.dataCriacao DESC")
+    List<Proposta> buscarDemandasProximas(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'FINALIZADA'")
+    Integer contarDemandasConcluida(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COALESCE(SUM(p.valor), 0) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'FINALIZADA'")
+    BigDecimal totalGanho(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId AND p.status = 'FINALIZADA'")
+    Long totalConcluidas(@Param("prestadorId") Long prestadorId);
+
+    @Query("SELECT COUNT(p) FROM Proposta p WHERE p.prestadorServico.id = :prestadorId")
+    Long totalDemandas(@Param("prestadorId") Long prestadorId);
 }
