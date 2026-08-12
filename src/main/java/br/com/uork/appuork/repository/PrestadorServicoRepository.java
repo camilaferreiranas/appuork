@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -30,6 +31,16 @@ public interface PrestadorServicoRepository extends JpaRepository<PrestadorServi
     Page<PrestadorServico> buscarPorCategoria(
             @Param("categoriaId") Long categoriaId,
             Pageable pageable
+    );
+
+    @Query("""
+        SELECT DISTINCT p FROM PrestadorServico p
+        JOIN p.categorias c
+        WHERE p.ativo = true
+        AND (:categoriaId IS NULL OR c.id = :categoriaId)
+    """)
+    List<PrestadorServico> buscarPorCategoria(
+            @Param("categoriaId") Long categoriaId
     );
 
 }

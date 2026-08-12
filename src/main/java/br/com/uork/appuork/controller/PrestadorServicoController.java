@@ -58,13 +58,20 @@ public class PrestadorServicoController {
     public ResponseEntity<ApiResponse<PageResponseDTO<PrestadorListDTO>>> listarPrestadores(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Long categoriaId
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude
     ) {
 
         Pageable pageable = PageRequest.of(page, size);
 
         Page<PrestadorListDTO> pagina =
-                prestadorServicoService.listarPrestadores(pageable, categoriaId);
+                prestadorServicoService.listarPrestadores(
+                        pageable,
+                        categoriaId,
+                        latitude,
+                        longitude
+                );
 
         PageResponseDTO<PrestadorListDTO> data = new PageResponseDTO<>(
                 pagina.getContent(),

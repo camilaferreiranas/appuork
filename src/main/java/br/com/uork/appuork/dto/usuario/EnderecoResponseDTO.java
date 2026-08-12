@@ -6,5 +6,17 @@ public record EnderecoResponseDTO(
         String bairro,
         String cidade,
         String estado,
-        String cep
-) {}
+        String cep,
+        Double latitude,
+        Double longitude
+) {
+    public EnderecoResponseDTO(
+            String rua,
+            String numero,
+            String bairro,
+            String cidade,
+            String estado,
+            String cep) {
+        this(rua, numero, bairro, cidade, estado, cep, null, null);
+    }
+}

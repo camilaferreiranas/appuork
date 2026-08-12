@@ -3,6 +3,7 @@ package br.com.uork.appuork.service;
 import br.com.uork.appuork.dto.prestadorServico.*;
 import br.com.uork.appuork.dto.servico.ServicoOferecidoDTO;
 import br.com.uork.appuork.models.Categoria;
+import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.CategoriaRepository;
@@ -10,13 +11,16 @@ import br.com.uork.appuork.repository.PrestadorServicoRepository;
 import br.com.uork.appuork.repository.PropostaRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -94,25 +98,106 @@ public class PrestadorServicoService {
         );
     }
 
-    public Page<PrestadorListDTO> listarPrestadores(Pageable pageable, Long categoriaId) {
+    @Transactional(readOnly = true)
+    public Page<PrestadorListDTO> listarPrestadores(
+            Pageable pageable,
+            Long categoriaId,
+            Double latitude,
+            Double longitude) {
 
-        Page<PrestadorServico> pagina =
-                prestadorServicoRepository.buscarPorCategoria(categoriaId, pageable);
+        validarCoordenadas(latitude, longitude);
 
-        return pagina.map(prestador -> {
+        if (latitude == null) {
+            Page<PrestadorServico> pagina =
+                    prestadorServicoRepository.buscarPorCategoria(categoriaId, pageable);
 
-            List<String> categorias = prestador.getCategorias()
-                    .stream()
-                    .map(Categoria::getNome)
-                    .toList();
+            return pagina.map(prestador -> montarPrestadorListDTO(prestador, null, null));
+        }
 
-            return new PrestadorListDTO(
-                    prestador.getId(),
-                    prestador.getUsuario().getNome(),
-                    categorias,
-                    prestador.getMediaAvaliacoes()
-            );
-        });
+        List<PrestadorListDTO> prestadores = prestadorServicoRepository
+                .buscarPorCategoria(categoriaId)
+                .stream()
+                .map(prestador -> montarPrestadorListDTO(prestador, latitude, longitude))
+                .sorted(Comparator.comparing(
+                        PrestadorListDTO::distanciaKm,
+                        Comparator.nullsLast(Double::compareTo)
+                ))
+                .toList();
+
+        int inicio = Math.toIntExact(pageable.getOffset());
+        if (inicio >= prestadores.size()) {
+            return new PageImpl<>(List.of(), pageable, prestadores.size());
+        }
+
+        int fim = Math.min(inicio + pageable.getPageSize(), prestadores.size());
+        return new PageImpl<>(prestadores.subList(inicio, fim), pageable, prestadores.size());
+    }
+
+    private PrestadorListDTO montarPrestadorListDTO(
+            PrestadorServico prestador,
+            Double latitude,
+            Double longitude) {
+
+        List<String> categorias = prestador.getCategorias()
+                .stream()
+                .map(Categoria::getNome)
+                .toList();
+
+        return new PrestadorListDTO(
+                prestador.getId(),
+                prestador.getUsuario().getNome(),
+                categorias,
+                prestador.getMediaAvaliacoes(),
+                calcularDistancia(prestador.getUsuario().getEndereco(), latitude, longitude)
+        );
+    }
+
+    private void validarCoordenadas(Double latitude, Double longitude) {
+        if ((latitude == null) != (longitude == null)) {
+            throw new IllegalArgumentException("Latitude e longitude devem ser informadas juntas");
+        }
+
+        if (latitude == null) {
+            return;
+        }
+
+        if (latitude < -90 || latitude > 90) {
+            throw new IllegalArgumentException("Latitude deve estar entre -90 e 90");
+        }
+
+        if (longitude < -180 || longitude > 180) {
+            throw new IllegalArgumentException("Longitude deve estar entre -180 e 180");
+        }
+    }
+
+    private Double calcularDistancia(
+            Endereco enderecoPrestador,
+            Double latitudeCliente,
+            Double longitudeCliente) {
+
+        if (latitudeCliente == null
+                || enderecoPrestador == null
+                || enderecoPrestador.getLatitude() == null
+                || enderecoPrestador.getLongitude() == null) {
+            return null;
+        }
+
+        final double raioTerraKm = 6371.0088;
+        double latitudeOrigem = Math.toRadians(latitudeCliente);
+        double latitudeDestino = Math.toRadians(enderecoPrestador.getLatitude());
+        double diferencaLatitude = latitudeDestino - latitudeOrigem;
+        double diferencaLongitude = Math.toRadians(
+                enderecoPrestador.getLongitude() - longitudeCliente
+        );
+
+        double haversine = Math.pow(Math.sin(diferencaLatitude / 2), 2)
+                + Math.cos(latitudeOrigem)
+                * Math.cos(latitudeDestino)
+                * Math.pow(Math.sin(diferencaLongitude / 2), 2);
+
+        double haversineNormalizado = Math.min(1.0, Math.max(0.0, haversine));
+        double distancia = 2 * raioTerraKm * Math.asin(Math.sqrt(haversineNormalizado));
+        return Math.round(distancia * 100.0) / 100.0;
     }
 
     public PrestadorDetalheDTO buscarPrestadorPorId(Long id) {

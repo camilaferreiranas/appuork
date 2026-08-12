@@ -26,6 +26,12 @@ public class GlobalControllerAdvice {
         return new ResponseEntity<>(errors, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErros> handleIllegalArgument(IllegalArgumentException e) {
+        var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.BAD_REQUEST.value(), LocalDateTime.now());
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErros> handleRuntimeException(RuntimeException e) {
         var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR.value(), LocalDateTime.now());

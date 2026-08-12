@@ -11,6 +11,8 @@ public class Endereco {
     private String cidade;
     private String estado;
     private String cep;
+    private Double longitude;
+    private Double latitude;
 
     public Endereco() {
     }
@@ -61,5 +63,21 @@ public class Endereco {
 
     public void setCep(String cep) {
         this.cep = cep;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 }

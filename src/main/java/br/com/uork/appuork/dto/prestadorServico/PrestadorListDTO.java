@@ -6,5 +6,6 @@ public record PrestadorListDTO(
         Long id,
         String nome,
         List<String> categorias,
-        Double mediaAvaliacoes
+        Double mediaAvaliacoes,
+        Double distanciaKm
 ) {}
