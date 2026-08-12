@@ -1,9 +1,10 @@
 package br.com.uork.appuork.service;
 
+import br.com.uork.appuork.dto.localizacao.LocalizacaoPrestadorDTO;
+import br.com.uork.appuork.dto.localizacao.LocalizacaoRequestDTO;
 import br.com.uork.appuork.dto.prestadorServico.*;
 import br.com.uork.appuork.dto.servico.ServicoOferecidoDTO;
 import br.com.uork.appuork.models.Categoria;
-import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.CategoriaRepository;
@@ -31,15 +32,18 @@ public class PrestadorServicoService {
     private final UsuarioRepository usuarioRepository;
     private final CategoriaRepository categoriaRepository;
     private final PropostaRepository propostaRepository;
+    private final PrestadorLocalizacaoCacheService localizacaoCacheService;
 
     public PrestadorServicoService(PrestadorServicoRepository prestadorServicoRepository,
                                    UsuarioRepository usuarioRepository,
                                    CategoriaRepository categoriaRepository,
-                                   PropostaRepository propostaRepository) {
+                                   PropostaRepository propostaRepository,
+                                   PrestadorLocalizacaoCacheService localizacaoCacheService) {
         this.prestadorServicoRepository = prestadorServicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
         this.propostaRepository = propostaRepository;
+        this.localizacaoCacheService = localizacaoCacheService;
     }
 
     public PrestadorResponseDTO criarPrestador(String email, PrestadorCreateDTO dto) {
@@ -133,6 +137,27 @@ public class PrestadorServicoService {
         return new PageImpl<>(prestadores.subList(inicio, fim), pageable, prestadores.size());
     }
 
+    public LocalizacaoPrestadorDTO atualizarLocalizacao(
+            String email,
+            LocalizacaoRequestDTO localizacaoRequest) {
+        if (localizacaoRequest == null) {
+            throw new IllegalArgumentException("Localização é obrigatória");
+        }
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        PrestadorServico prestador = prestadorServicoRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException(
+                        "Usuário não está cadastrado como prestador"
+                ));
+
+        return localizacaoCacheService.salvar(
+                prestador.getId(),
+                localizacaoRequest.latitude(),
+                localizacaoRequest.longitude()
+        );
+    }
+
     private PrestadorListDTO montarPrestadorListDTO(
             PrestadorServico prestador,
             Double latitude,
@@ -148,7 +173,7 @@ public class PrestadorServicoService {
                 prestador.getUsuario().getNome(),
                 categorias,
                 prestador.getMediaAvaliacoes(),
-                calcularDistancia(prestador.getUsuario().getEndereco(), latitude, longitude)
+                calcularDistancia(prestador.getId(), latitude, longitude)
         );
     }
 
@@ -161,33 +186,38 @@ public class PrestadorServicoService {
             return;
         }
 
-        if (latitude < -90 || latitude > 90) {
+        if (!Double.isFinite(latitude) || latitude < -90 || latitude > 90) {
             throw new IllegalArgumentException("Latitude deve estar entre -90 e 90");
         }
 
-        if (longitude < -180 || longitude > 180) {
+        if (!Double.isFinite(longitude) || longitude < -180 || longitude > 180) {
             throw new IllegalArgumentException("Longitude deve estar entre -180 e 180");
         }
     }
 
     private Double calcularDistancia(
-            Endereco enderecoPrestador,
+            Long prestadorId,
             Double latitudeCliente,
             Double longitudeCliente) {
 
-        if (latitudeCliente == null
-                || enderecoPrestador == null
-                || enderecoPrestador.getLatitude() == null
-                || enderecoPrestador.getLongitude() == null) {
+        if (latitudeCliente == null) {
+            return null;
+        }
+
+        LocalizacaoPrestadorDTO localizacaoPrestador = localizacaoCacheService
+                .buscar(prestadorId)
+                .orElse(null);
+
+        if (localizacaoPrestador == null) {
             return null;
         }
 
         final double raioTerraKm = 6371.0088;
         double latitudeOrigem = Math.toRadians(latitudeCliente);
-        double latitudeDestino = Math.toRadians(enderecoPrestador.getLatitude());
+        double latitudeDestino = Math.toRadians(localizacaoPrestador.latitude());
         double diferencaLatitude = latitudeDestino - latitudeOrigem;
         double diferencaLongitude = Math.toRadians(
-                enderecoPrestador.getLongitude() - longitudeCliente
+                localizacaoPrestador.longitude() - longitudeCliente
         );
 
         double haversine = Math.pow(Math.sin(diferencaLatitude / 2), 2)

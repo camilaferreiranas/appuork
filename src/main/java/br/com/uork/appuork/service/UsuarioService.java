@@ -55,8 +55,6 @@ public class UsuarioService {
         usuario.setTelefone(dto.telefone());
 
         if (dto.endereco() != null) {
-            validarCoordenadas(dto.endereco().latitude(), dto.endereco().longitude());
-
             Endereco endereco = new Endereco();
             endereco.setRua(dto.endereco().rua());
             endereco.setNumero(dto.endereco().numero());
@@ -64,8 +62,6 @@ public class UsuarioService {
             endereco.setCidade(dto.endereco().cidade());
             endereco.setEstado(dto.endereco().estado());
             endereco.setCep(dto.endereco().cep());
-            endereco.setLatitude(dto.endereco().latitude());
-            endereco.setLongitude(dto.endereco().longitude());
             usuario.setEndereco(endereco);
         }
 
@@ -89,7 +85,7 @@ public class UsuarioService {
 
     private EnderecoResponseDTO toEnderecoResponse(Endereco endereco) {
         if (endereco == null) {
-            return new EnderecoResponseDTO(null, null, null, null, null, null, null, null);
+            return new EnderecoResponseDTO(null, null, null, null, null, null);
         }
 
         return new EnderecoResponseDTO(
@@ -98,9 +94,7 @@ public class UsuarioService {
                 endereco.getBairro(),
                 endereco.getCidade(),
                 endereco.getEstado(),
-                endereco.getCep(),
-                endereco.getLatitude(),
-                endereco.getLongitude()
+                endereco.getCep()
         );
     }
 
@@ -121,11 +115,6 @@ public class UsuarioService {
 
         if (dto.endereco() != null) {
             EnderecoResponseDTO enderecoDto = dto.endereco();
-            Endereco enderecoAtual = usuario.getEndereco();
-
-            if (enderecoDto.latitude() != null || enderecoDto.longitude() != null) {
-                validarCoordenadas(enderecoDto.latitude(), enderecoDto.longitude());
-            }
 
             Endereco endereco = new Endereco();
             endereco.setRua(enderecoDto.rua());
@@ -134,16 +123,6 @@ public class UsuarioService {
             endereco.setCidade(enderecoDto.cidade());
             endereco.setEstado(enderecoDto.estado());
             endereco.setCep(enderecoDto.cep());
-            endereco.setLatitude(
-                    enderecoDto.latitude() != null
-                            ? enderecoDto.latitude()
-                            : enderecoAtual != null ? enderecoAtual.getLatitude() : null
-            );
-            endereco.setLongitude(
-                    enderecoDto.longitude() != null
-                            ? enderecoDto.longitude()
-                            : enderecoAtual != null ? enderecoAtual.getLongitude() : null
-            );
 
             usuario.setEndereco(endereco);
         }
@@ -161,21 +140,4 @@ public class UsuarioService {
         );
     }
 
-    private void validarCoordenadas(Double latitude, Double longitude) {
-        if ((latitude == null) != (longitude == null)) {
-            throw new IllegalArgumentException("Latitude e longitude devem ser informadas juntas");
-        }
-
-        if (latitude == null) {
-            return;
-        }
-
-        if (latitude < -90 || latitude > 90) {
-            throw new IllegalArgumentException("Latitude deve estar entre -90 e 90");
-        }
-
-        if (longitude < -180 || longitude > 180) {
-            throw new IllegalArgumentException("Longitude deve estar entre -180 e 180");
-        }
-    }
 }

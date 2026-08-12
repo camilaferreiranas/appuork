@@ -1,6 +1,8 @@
 package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
+import br.com.uork.appuork.dto.localizacao.LocalizacaoPrestadorDTO;
+import br.com.uork.appuork.dto.localizacao.LocalizacaoRequestDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.page.PageResponseDTO;
 import br.com.uork.appuork.dto.prestadorServico.*;
@@ -10,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*")
@@ -37,6 +41,25 @@ public class PrestadorServicoController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/localizacao")
+    public ResponseEntity<ApiResponse<LocalizacaoPrestadorDTO>> atualizarLocalizacao(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody LocalizacaoRequestDTO localizacaoRequest) {
+
+        LocalizacaoPrestadorDTO data = prestadorServicoService.atualizarLocalizacao(
+                jwt.getSubject(),
+                localizacaoRequest
+        );
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Localização do prestador atualizada no cache",
+                        data
+                )
+        );
     }
 
 

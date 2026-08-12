@@ -177,4 +177,5 @@ class UsuarioServiceTest {
         assertNotNull(perfil.endereco());
         assertEquals("SP", perfil.endereco().estado());
     }
+
 }

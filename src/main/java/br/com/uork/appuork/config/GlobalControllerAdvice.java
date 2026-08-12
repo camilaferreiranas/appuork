@@ -2,6 +2,7 @@ package br.com.uork.appuork.config;
 
 import br.com.uork.appuork.dto.common.ApiErros;
 import br.com.uork.appuork.exception.DocumentoInvalidoException;
+import br.com.uork.appuork.exception.CepServiceIndisponivelException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -30,6 +31,12 @@ public class GlobalControllerAdvice {
     public ResponseEntity<ApiErros> handleIllegalArgument(IllegalArgumentException e) {
         var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.BAD_REQUEST.value(), LocalDateTime.now());
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CepServiceIndisponivelException.class)
+    public ResponseEntity<ApiErros> handleCepServiceIndisponivel(CepServiceIndisponivelException e) {
+        var errors = new ApiErros(List.of(e.getMessage()), HttpStatus.SERVICE_UNAVAILABLE.value(), LocalDateTime.now());
+        return new ResponseEntity<>(errors, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(RuntimeException.class)
