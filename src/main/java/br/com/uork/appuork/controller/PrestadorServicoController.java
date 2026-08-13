@@ -62,6 +62,17 @@ public class PrestadorServicoController {
         );
     }
 
+    @GetMapping("/me/status")
+    public ResponseEntity<ApiResponse<Boolean>> verificarCadastroProfissional(
+            @AuthenticationPrincipal Jwt jwt) {
+        boolean cadastrado = prestadorServicoService
+                .usuarioEstaCadastradoComoPrestador(jwt.getSubject());
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Status profissional carregado", cadastrado)
+        );
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PrestadorDetalheDTO>> buscarPrestadorPorId(@PathVariable Long id) {

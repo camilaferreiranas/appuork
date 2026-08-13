@@ -168,6 +168,14 @@ public class PrestadorServicoService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public boolean usuarioEstaCadastradoComoPrestador(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        return prestadorServicoRepository.existsByUsuario(usuario);
+    }
+
     private PrestadorListDTO montarPrestadorListDTO(
             PrestadorServico prestador,
             Double latitude,
