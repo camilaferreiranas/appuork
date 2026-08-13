@@ -83,7 +83,8 @@ public class PrestadorServicoController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(required = false) Double latitude,
-            @RequestParam(required = false) Double longitude
+            @RequestParam(required = false) Double longitude,
+            @AuthenticationPrincipal Jwt jwt
     ) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -93,7 +94,8 @@ public class PrestadorServicoController {
                         pageable,
                         categoriaId,
                         latitude,
-                        longitude
+                        longitude,
+                        jwt.getSubject()
                 );
 
         PageResponseDTO<PrestadorListDTO> data = new PageResponseDTO<>(

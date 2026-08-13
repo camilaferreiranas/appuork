@@ -27,9 +27,11 @@ public interface PrestadorServicoRepository extends JpaRepository<PrestadorServi
         JOIN p.categorias c
         WHERE p.ativo = true
         AND (:categoriaId IS NULL OR c.id = :categoriaId)
+        AND (:usuarioIdExcluir IS NULL OR p.usuario.id <> :usuarioIdExcluir)
     """)
     Page<PrestadorServico> buscarPorCategoria(
             @Param("categoriaId") Long categoriaId,
+            @Param("usuarioIdExcluir") Long usuarioIdExcluir,
             Pageable pageable
     );
 
@@ -38,9 +40,11 @@ public interface PrestadorServicoRepository extends JpaRepository<PrestadorServi
         JOIN p.categorias c
         WHERE p.ativo = true
         AND (:categoriaId IS NULL OR c.id = :categoriaId)
+        AND (:usuarioIdExcluir IS NULL OR p.usuario.id <> :usuarioIdExcluir)
     """)
     List<PrestadorServico> buscarPorCategoria(
-            @Param("categoriaId") Long categoriaId
+            @Param("categoriaId") Long categoriaId,
+            @Param("usuarioIdExcluir") Long usuarioIdExcluir
     );
 
 }

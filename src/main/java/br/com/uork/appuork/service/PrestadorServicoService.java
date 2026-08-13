@@ -107,19 +107,29 @@ public class PrestadorServicoService {
             Pageable pageable,
             Long categoriaId,
             Double latitude,
-            Double longitude) {
+            Double longitude,
+            String emailUsuarioAtual) {
 
         validarCoordenadas(latitude, longitude);
 
+        Usuario usuarioAtual = usuarioRepository
+                .findByEmailIgnoreCase(emailUsuarioAtual)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Long usuarioIdExcluir = usuarioAtual.getId();
+
         if (latitude == null) {
             Page<PrestadorServico> pagina =
-                    prestadorServicoRepository.buscarPorCategoria(categoriaId, pageable);
+                    prestadorServicoRepository.buscarPorCategoria(
+                            categoriaId,
+                            usuarioIdExcluir,
+                            pageable
+                    );
 
             return pagina.map(prestador -> montarPrestadorListDTO(prestador, null, null));
         }
 
         List<PrestadorListDTO> prestadores = prestadorServicoRepository
-                .buscarPorCategoria(categoriaId)
+                .buscarPorCategoria(categoriaId, usuarioIdExcluir)
                 .stream()
                 .map(prestador -> montarPrestadorListDTO(prestador, latitude, longitude))
                 .sorted(Comparator.comparing(
