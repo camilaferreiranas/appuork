@@ -79,6 +79,7 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
+                usuario.getTelefone(),
                 toEnderecoResponse(usuario.getEndereco())
         );
     }
@@ -103,12 +104,46 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailAtual)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (!usuario.getEmail().equalsIgnoreCase(dto.email())
-                && usuarioRepository.existsByEmailIgnoreCase(dto.email())) {
+        String novoEmail = dto.email() == null ? usuario.getEmail() : dto.email().trim();
+        if (novoEmail.isBlank()) {
+            throw new RuntimeException("E-mail é obrigatório");
+        }
+
+        if (!usuario.getEmail().equalsIgnoreCase(novoEmail)
+                && usuarioRepository.existsByEmailIgnoreCase(novoEmail)) {
             throw new RuntimeException("E-mail já cadastrado");
         }
 
-        usuario.setEmail(dto.email());
+        if (dto.nome() != null) {
+            String nome = dto.nome().trim();
+            if (nome.isBlank()) throw new RuntimeException("Nome é obrigatório");
+            usuario.setNome(nome);
+        }
+
+        if (dto.sobrenome() != null) {
+            String sobrenome = dto.sobrenome().trim();
+            if (sobrenome.isBlank()) throw new RuntimeException("Sobrenome é obrigatório");
+            usuario.setSobrenome(sobrenome);
+        }
+
+        if (dto.tipoPessoa() != null && dto.documento() != null) {
+            String documento = dto.documento().replaceAll("[^\\d]", "");
+            documentoValidator.validar(dto.tipoPessoa(), documento);
+
+            if (!documento.equals(usuario.getDocumento())
+                    && usuarioRepository.existsByDocumento(documento)) {
+                throw new RuntimeException("Documento já cadastrado");
+            }
+
+            usuario.setTipoPessoa(dto.tipoPessoa());
+            usuario.setDocumento(documento);
+        }
+
+        usuario.setEmail(novoEmail);
+        if (dto.telefone() != null) {
+            usuario.setTelefone(dto.telefone().trim());
+        }
+
         if (dto.senha() != null && !dto.senha().isBlank()) {
             usuario.setSenha(passwordEncoder.encode(dto.senha()));
         }
@@ -136,6 +171,7 @@ public class UsuarioService {
                 usuario.getEmail(),
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
+                usuario.getTelefone(),
                 toEnderecoResponse(usuario.getEndereco())
         );
     }
