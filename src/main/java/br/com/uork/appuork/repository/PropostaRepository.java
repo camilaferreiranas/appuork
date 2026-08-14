@@ -29,6 +29,9 @@ public interface PropostaRepository extends JpaRepository<Proposta, Long> {
     Integer contarPorStatus(@Param("prestador") PrestadorServico prestador,
                             @Param("status") StatusProposta status);
 
+    List<Proposta> findByPrestadorServicoOrderByDataCriacaoDesc(
+            PrestadorServico prestadorServico);
+
     @Query("SELECT YEAR(p.dataCriacao), MONTH(p.dataCriacao), SUM(p.valor) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status GROUP BY YEAR(p.dataCriacao), MONTH(p.dataCriacao) ORDER BY YEAR(p.dataCriacao), MONTH(p.dataCriacao)")
     List<Object[]> evolucaoMensal(@Param("prestador") PrestadorServico prestador,
                                   @Param("status") StatusProposta status);

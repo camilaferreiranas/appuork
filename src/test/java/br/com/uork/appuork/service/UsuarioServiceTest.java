@@ -178,4 +178,34 @@ class UsuarioServiceTest {
         assertEquals("SP", perfil.endereco().estado());
     }
 
+    @Test
+    @DisplayName("atualizarPerfil updates personal data and preserves address when it is omitted")
+    void atualizarDadosPessoaisSemAlterarEndereco() {
+        Usuario usuario = umUsuario();
+        Endereco endereco = new Endereco();
+        endereco.setRua("Rua Antiga");
+        usuario.setEndereco(endereco);
+        when(repository.findByEmailIgnoreCase("ana@email.com")).thenReturn(Optional.of(usuario));
+
+        UsuarioUpdateDTO dto = new UsuarioUpdateDTO(
+                "Beatriz",
+                "Souza",
+                "bia@email.com",
+                null,
+                TipoPessoa.CPF,
+                "111.444.777-35",
+                "11999999999",
+                null
+        );
+
+        PerfilResponseDTO perfil = service.atualizarPerfil("ana@email.com", dto);
+
+        assertEquals("Beatriz", perfil.nome());
+        assertEquals("Souza", perfil.sobrenome());
+        assertEquals("bia@email.com", perfil.email());
+        assertEquals("11144477735", perfil.documento());
+        assertEquals("11999999999", perfil.telefone());
+        assertEquals("Rua Antiga", perfil.endereco().rua());
+    }
+
 }

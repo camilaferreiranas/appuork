@@ -5,6 +5,7 @@ import br.com.uork.appuork.dto.notificacao.NotificacoesDTO;
 import br.com.uork.appuork.models.Notificacao;
 import br.com.uork.appuork.models.Proposta;
 import br.com.uork.appuork.models.Usuario;
+import br.com.uork.appuork.models.enuns.StatusProposta;
 import br.com.uork.appuork.repository.NotificacaoRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
@@ -41,13 +42,16 @@ public class NotificacaoService {
     public NotificacoesDTO listar(String email) {
         Usuario usuario = buscarUsuario(email);
         var notificacoes = notificacaoRepository
-                .findByDestinatarioOrderByDataCriacaoDesc(usuario)
+                .findByDestinatarioAndStatusProposta(usuario, StatusProposta.PENDENTE)
                 .stream()
                 .map(this::toResponse)
                 .toList();
 
         return new NotificacoesDTO(
-                notificacaoRepository.countByDestinatarioAndLidaFalse(usuario),
+                notificacaoRepository.countNaoLidasByDestinatarioAndStatusProposta(
+                        usuario,
+                        StatusProposta.PENDENTE
+                ),
                 notificacoes
         );
     }

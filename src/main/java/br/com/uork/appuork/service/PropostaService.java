@@ -1,6 +1,7 @@
 package br.com.uork.appuork.service;
 
 import br.com.uork.appuork.dto.demanda.DemandaResumoDTO;
+import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
@@ -93,6 +94,7 @@ public class PropostaService {
         );
     }
 
+    @Transactional
     public PropostaResponseDTO aceitarProposta(Long propostaId, String email) {
 
         Proposta proposta = propostaRepository.findById(propostaId)
@@ -178,6 +180,29 @@ public class PropostaService {
         Proposta propostaSalva = propostaRepository.save(proposta);
 
         return montarResponse(propostaSalva);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DemandaProfissionalDTO> listarDemandasDoPrestador(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        PrestadorServico prestador = prestadorServicoRepository.findByUsuario(usuario)
+                .orElseThrow(() -> new RuntimeException("Usuário não está cadastrado como prestador"));
+
+        return propostaRepository
+                .findByPrestadorServicoOrderByDataCriacaoDesc(prestador)
+                .stream()
+                .map(proposta -> new DemandaProfissionalDTO(
+                        proposta.getId(),
+                        proposta.getTitulo(),
+                        proposta.getDescricao(),
+                        proposta.getUsuario().getNome(),
+                        proposta.getValor(),
+                        proposta.getStatus(),
+                        proposta.getDataCriacao()
+                ))
+                .toList();
     }
 
     private PropostaResponseDTO montarResponse(Proposta proposta) {

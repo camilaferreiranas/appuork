@@ -2,6 +2,7 @@ package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
+import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -42,9 +45,9 @@ public class PropostaController {
     @PatchMapping("/{id}/aceitar")
     public ResponseEntity<ApiResponse<PropostaResponseDTO>> aceitar(
             @PathVariable Long id,
-            @RequestParam String email) {
+            @AuthenticationPrincipal Jwt jwt) {
 
-        PropostaResponseDTO data = propostaService.aceitarProposta(id, email);
+        PropostaResponseDTO data = propostaService.aceitarProposta(id, jwt.getSubject());
 
         return ResponseEntity.ok(new ApiResponse<>(
                 true,
@@ -89,6 +92,16 @@ public class PropostaController {
                 true,
                 "Proposta finalizada com sucesso",
                 data
+        ));
+    }
+
+    @GetMapping("/prestador/demandas")
+    public ResponseEntity<ApiResponse<List<DemandaProfissionalDTO>>> listarDemandas(
+            @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Demandas carregadas com sucesso",
+                propostaService.listarDemandasDoPrestador(jwt.getSubject())
         ));
     }
 
