@@ -13,6 +13,7 @@ import br.com.uork.appuork.repository.PrestadorServicoRepository;
 import br.com.uork.appuork.repository.PropostaRepository;
 import br.com.uork.appuork.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,15 +25,19 @@ public class PropostaService {
     private final PropostaRepository propostaRepository;
     private final UsuarioRepository usuarioRepository;
     private final PrestadorServicoRepository prestadorServicoRepository;
+    private final NotificacaoService notificacaoService;
 
     public PropostaService(PropostaRepository propostaRepository,
                            UsuarioRepository usuarioRepository,
-                           PrestadorServicoRepository prestadorServicoRepository) {
+                           PrestadorServicoRepository prestadorServicoRepository,
+                           NotificacaoService notificacaoService) {
         this.propostaRepository = propostaRepository;
         this.usuarioRepository = usuarioRepository;
         this.prestadorServicoRepository = prestadorServicoRepository;
+        this.notificacaoService = notificacaoService;
     }
 
+    @Transactional
     public PropostaResponseDTO criarProposta(PropostaCreateDTO dto, String emailUsuario) {
 
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(emailUsuario)
@@ -75,6 +80,7 @@ public class PropostaService {
         proposta.setDataCriacao(LocalDateTime.now());
 
         Proposta propostaSalva = propostaRepository.save(proposta);
+        notificacaoService.criarNotificacaoDeProposta(propostaSalva);
 
         return new PropostaResponseDTO(
                 propostaSalva.getId(),
