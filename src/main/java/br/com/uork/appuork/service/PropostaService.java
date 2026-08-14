@@ -109,8 +109,10 @@ public class PropostaService {
         }
 
         proposta.setStatus(StatusProposta.ACEITA);
+        Proposta propostaSalva = propostaRepository.save(proposta);
+        notificacaoService.criarNotificacaoDePropostaAceita(propostaSalva);
 
-        return montarResponse(propostaRepository.save(proposta));
+        return montarResponse(propostaSalva);
     }
 
     public PropostaResponseDTO recusarProposta(Long propostaId, String email) {

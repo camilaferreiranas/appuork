@@ -31,6 +31,18 @@ public class NotificacaoController {
         );
     }
 
+    @GetMapping("/cliente")
+    public ResponseEntity<ApiResponse<NotificacoesDTO>> listarCliente(
+            @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "Notificações do cliente carregadas com sucesso",
+                        notificacaoService.listarCliente(jwt.getSubject())
+                )
+        );
+    }
+
     @PatchMapping("/{id}/lida")
     public ResponseEntity<ApiResponse<NotificacaoResponseDTO>> marcarComoLida(
             @PathVariable Long id,

@@ -31,5 +31,23 @@ public interface NotificacaoRepository extends JpaRepository<Notificacao, Long> 
             @Param("destinatario") Usuario destinatario,
             @Param("status") StatusProposta status);
 
+    @Query("""
+            select n from Notificacao n
+            where n.destinatario = :destinatario
+              and n.proposta.usuario = :destinatario
+            order by n.dataCriacao desc
+            """)
+    List<Notificacao> findNotificacoesDoCliente(
+            @Param("destinatario") Usuario destinatario);
+
+    @Query("""
+            select count(n) from Notificacao n
+            where n.destinatario = :destinatario
+              and n.proposta.usuario = :destinatario
+              and n.lida = false
+            """)
+    long countNaoLidasDoCliente(
+            @Param("destinatario") Usuario destinatario);
+
     Optional<Notificacao> findByIdAndDestinatario(Long id, Usuario destinatario);
 }
