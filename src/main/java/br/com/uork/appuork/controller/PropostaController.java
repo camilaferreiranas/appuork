@@ -5,6 +5,7 @@ import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
+import br.com.uork.appuork.dto.proposta.HistoricoClienteDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.service.PropostaService;
 import org.springframework.http.HttpStatus;
@@ -102,6 +103,16 @@ public class PropostaController {
                 true,
                 "Demandas carregadas com sucesso",
                 propostaService.listarDemandasDoPrestador(jwt.getSubject())
+        ));
+    }
+
+    @GetMapping("/cliente/historico")
+    public ResponseEntity<ApiResponse<List<HistoricoClienteDTO>>> listarHistoricoDoCliente(
+            @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Histórico do cliente carregado com sucesso",
+                propostaService.listarHistoricoDoCliente(jwt.getSubject())
         ));
     }
 

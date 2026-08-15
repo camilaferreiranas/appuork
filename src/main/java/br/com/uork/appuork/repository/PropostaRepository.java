@@ -2,6 +2,7 @@ package br.com.uork.appuork.repository;
 
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Proposta;
+import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.models.enuns.StatusProposta;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -31,6 +32,8 @@ public interface PropostaRepository extends JpaRepository<Proposta, Long> {
 
     List<Proposta> findByPrestadorServicoOrderByDataCriacaoDesc(
             PrestadorServico prestadorServico);
+
+    List<Proposta> findByUsuarioOrderByDataCriacaoDesc(Usuario usuario);
 
     @Query("SELECT YEAR(p.dataCriacao), MONTH(p.dataCriacao), SUM(p.valor) FROM Proposta p WHERE p.prestadorServico = :prestador AND p.status = :status GROUP BY YEAR(p.dataCriacao), MONTH(p.dataCriacao) ORDER BY YEAR(p.dataCriacao), MONTH(p.dataCriacao)")
     List<Object[]> evolucaoMensal(@Param("prestador") PrestadorServico prestador,

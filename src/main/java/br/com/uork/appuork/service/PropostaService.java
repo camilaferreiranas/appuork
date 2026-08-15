@@ -5,6 +5,7 @@ import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
+import br.com.uork.appuork.dto.proposta.HistoricoClienteDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Proposta;
@@ -200,6 +201,27 @@ public class PropostaService {
                         proposta.getTitulo(),
                         proposta.getDescricao(),
                         proposta.getUsuario().getNome(),
+                        proposta.getValor(),
+                        proposta.getStatus(),
+                        proposta.getDataCriacao()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistoricoClienteDTO> listarHistoricoDoCliente(String email) {
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        return propostaRepository
+                .findByUsuarioOrderByDataCriacaoDesc(usuario)
+                .stream()
+                .map(proposta -> new HistoricoClienteDTO(
+                        proposta.getId(),
+                        proposta.getPrestadorServico().getId(),
+                        proposta.getTitulo(),
+                        proposta.getDescricao(),
+                        proposta.getPrestadorServico().getUsuario().getNome(),
                         proposta.getValor(),
                         proposta.getStatus(),
                         proposta.getDataCriacao()
