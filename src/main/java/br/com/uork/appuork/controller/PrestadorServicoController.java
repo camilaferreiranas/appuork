@@ -93,6 +93,7 @@ public class PrestadorServicoController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) String busca,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             @AuthenticationPrincipal Jwt jwt
@@ -104,6 +105,7 @@ public class PrestadorServicoController {
                 prestadorServicoService.listarPrestadores(
                         pageable,
                         categoriaId,
+                        busca,
                         latitude,
                         longitude,
                         jwt.getSubject()

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -106,6 +107,7 @@ public class PrestadorServicoService {
     public Page<PrestadorListDTO> listarPrestadores(
             Pageable pageable,
             Long categoriaId,
+            String busca,
             Double latitude,
             Double longitude,
             String emailUsuarioAtual) {
@@ -116,12 +118,14 @@ public class PrestadorServicoService {
                 .findByEmailIgnoreCase(emailUsuarioAtual)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         Long usuarioIdExcluir = usuarioAtual.getId();
+        String termoBusca = normalizarTermoBusca(busca);
 
         if (latitude == null) {
             Page<PrestadorServico> pagina =
                     prestadorServicoRepository.buscarPorCategoria(
                             categoriaId,
                             usuarioIdExcluir,
+                            termoBusca,
                             pageable
                     );
 
@@ -129,7 +133,7 @@ public class PrestadorServicoService {
         }
 
         List<PrestadorListDTO> prestadores = prestadorServicoRepository
-                .buscarPorCategoria(categoriaId, usuarioIdExcluir)
+                .buscarPorCategoria(categoriaId, usuarioIdExcluir, termoBusca)
                 .stream()
                 .map(prestador -> montarPrestadorListDTO(prestador, latitude, longitude))
                 .sorted(Comparator.comparing(
@@ -145,6 +149,17 @@ public class PrestadorServicoService {
 
         int fim = Math.min(inicio + pageable.getPageSize(), prestadores.size());
         return new PageImpl<>(prestadores.subList(inicio, fim), pageable, prestadores.size());
+    }
+
+    private String normalizarTermoBusca(String busca) {
+        if (busca == null || busca.isBlank()) {
+            return null;
+        }
+
+        return Normalizer.normalize(busca.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("\\s+", " ");
     }
 
     public LocalizacaoPrestadorDTO atualizarLocalizacao(
