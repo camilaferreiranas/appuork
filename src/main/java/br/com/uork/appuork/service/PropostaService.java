@@ -5,6 +5,7 @@ import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
+import br.com.uork.appuork.dto.proposta.ContatoWhatsAppDTO;
 import br.com.uork.appuork.dto.proposta.HistoricoClienteDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.models.PrestadorServico;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -186,6 +189,38 @@ public class PropostaService {
     }
 
     @Transactional(readOnly = true)
+    public ContatoWhatsAppDTO buscarContatoWhatsApp(Long propostaId, String emailCliente) {
+        Proposta proposta = propostaRepository.findById(propostaId)
+                .orElseThrow(() -> new RuntimeException("Proposta não encontrada"));
+
+        if (!proposta.getUsuario().getEmail().equalsIgnoreCase(emailCliente)) {
+            throw new RuntimeException("Apenas o cliente que enviou a proposta pode acessar o contato do prestador");
+        }
+
+        if (proposta.getStatus() != StatusProposta.ACEITA) {
+            throw new RuntimeException("O contato do prestador só fica disponível após a proposta ser aceita");
+        }
+
+        Usuario usuarioPrestador = proposta.getPrestadorServico().getUsuario();
+        String numeroWhatsApp = normalizarTelefoneWhatsApp(usuarioPrestador.getTelefone());
+        String titulo = proposta.getTitulo() == null || proposta.getTitulo().isBlank()
+                ? "o serviço solicitado"
+                : "\"" + proposta.getTitulo().trim() + "\"";
+        String mensagem = "Olá, " + usuarioPrestador.getNome()
+                + "! Aqui é " + proposta.getUsuario().getNome()
+                + ", pelo Uork. Você aceitou minha proposta para " + titulo
+                + ". Vamos concluir o serviço?";
+        String whatsappUrl = "https://wa.me/" + numeroWhatsApp
+                + "?text=" + URLEncoder.encode(mensagem, StandardCharsets.UTF_8);
+
+        return new ContatoWhatsAppDTO(
+                usuarioPrestador.getNome(),
+                mensagem,
+                whatsappUrl
+        );
+    }
+
+    @Transactional(readOnly = true)
     public List<DemandaProfissionalDTO> listarDemandasDoPrestador(String email) {
         Usuario usuario = usuarioRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -239,6 +274,22 @@ public class PropostaService {
                 proposta.getStatus().name(),
                 proposta.getDataCriacao()
         );
+    }
+
+    private String normalizarTelefoneWhatsApp(String telefone) {
+        if (telefone == null || telefone.isBlank()) {
+            throw new RuntimeException("O prestador ainda não cadastrou um telefone para contato");
+        }
+
+        String digitos = telefone.replaceAll("\\D", "");
+        if (digitos.length() == 10 || digitos.length() == 11) {
+            return "55" + digitos;
+        }
+        if ((digitos.length() == 12 || digitos.length() == 13) && digitos.startsWith("55")) {
+            return digitos;
+        }
+
+        throw new RuntimeException("O telefone do prestador não é válido para contato pelo WhatsApp");
     }
 
     public listaDemandaDRO listaDemanda(Long prestadorId) {

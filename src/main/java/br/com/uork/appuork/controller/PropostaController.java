@@ -5,6 +5,7 @@ import br.com.uork.appuork.dto.demanda.DetalheDemandaDTO;
 import br.com.uork.appuork.dto.demanda.DemandaProfissionalDTO;
 import br.com.uork.appuork.dto.home.listaDemandaDRO;
 import br.com.uork.appuork.dto.proposta.PropostaCreateDTO;
+import br.com.uork.appuork.dto.proposta.ContatoWhatsAppDTO;
 import br.com.uork.appuork.dto.proposta.HistoricoClienteDTO;
 import br.com.uork.appuork.dto.proposta.PropostaResponseDTO;
 import br.com.uork.appuork.service.PropostaService;
@@ -113,6 +114,17 @@ public class PropostaController {
                 true,
                 "Histórico do cliente carregado com sucesso",
                 propostaService.listarHistoricoDoCliente(jwt.getSubject())
+        ));
+    }
+
+    @GetMapping("/{id}/contato-whatsapp")
+    public ResponseEntity<ApiResponse<ContatoWhatsAppDTO>> buscarContatoWhatsApp(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Contato do prestador liberado com sucesso",
+                propostaService.buscarContatoWhatsApp(id, jwt.getSubject())
         ));
     }
 
