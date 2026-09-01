@@ -29,10 +29,10 @@ public class PrestadorServicoController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<PrestadorResponseDTO>> criarPrestador(
-            @RequestParam String email,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestBody PrestadorCreateDTO dto) {
 
-        PrestadorResponseDTO data = prestadorServicoService.criarPrestador(email, dto);
+        PrestadorResponseDTO data = prestadorServicoService.criarPrestador(jwt.getSubject(), dto);
 
         ApiResponse<PrestadorResponseDTO> response = new ApiResponse<>(
                 true,

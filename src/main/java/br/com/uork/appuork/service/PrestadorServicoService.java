@@ -4,7 +4,9 @@ import br.com.uork.appuork.dto.localizacao.LocalizacaoPrestadorDTO;
 import br.com.uork.appuork.dto.localizacao.LocalizacaoRequestDTO;
 import br.com.uork.appuork.dto.prestadorServico.*;
 import br.com.uork.appuork.dto.servico.ServicoOferecidoDTO;
+import br.com.uork.appuork.dto.usuario.EnderecoResponseDTO;
 import br.com.uork.appuork.models.Categoria;
+import br.com.uork.appuork.models.Endereco;
 import br.com.uork.appuork.models.PrestadorServico;
 import br.com.uork.appuork.models.Usuario;
 import br.com.uork.appuork.repository.CategoriaRepository;
@@ -47,6 +49,7 @@ public class PrestadorServicoService {
         this.localizacaoCacheService = localizacaoCacheService;
     }
 
+    @Transactional
     public PrestadorResponseDTO criarPrestador(String email, PrestadorCreateDTO dto) {
 
         // 1. Buscar usuário
@@ -75,14 +78,19 @@ public class PrestadorServicoService {
             throw new RuntimeException("Uma ou mais categorias informadas não existem");
         }
 
+        Endereco endereco = criarEndereco(dto.endereco());
+
         // 6. Criar prestador
         PrestadorServico prestador = new PrestadorServico();
         prestador.setUsuario(usuario);
         prestador.setCategorias(categorias);
-        prestador.setDescricao(dto.descricao());
+        prestador.setDescricao(dto.descricao().trim());
         prestador.setMediaAvaliacoes(0.0);
         prestador.setTotalAvaliacoes(0);
         prestador.setAtivo(true);
+
+        usuario.setEndereco(endereco);
+        usuarioRepository.save(usuario);
 
         // 7. Salvar
         PrestadorServico prestadorSalvo = prestadorServicoRepository.save(prestador);
@@ -181,6 +189,46 @@ public class PrestadorServicoService {
                 localizacaoRequest.latitude(),
                 localizacaoRequest.longitude()
         );
+    }
+
+    private Endereco criarEndereco(EnderecoResponseDTO dto) {
+        if (dto == null) {
+            throw new RuntimeException("Endereço é obrigatório");
+        }
+
+        String cep = somenteDigitos(dto.cep());
+        if (cep.length() != 8) {
+            throw new RuntimeException("CEP deve conter 8 números");
+        }
+
+        String rua = campoObrigatorio(dto.rua(), "Rua");
+        String numero = campoObrigatorio(dto.numero(), "Número");
+        String bairro = campoObrigatorio(dto.bairro(), "Bairro");
+        String cidade = campoObrigatorio(dto.cidade(), "Cidade");
+        String estado = campoObrigatorio(dto.estado(), "Estado").toUpperCase(Locale.ROOT);
+        if (estado.length() != 2) {
+            throw new RuntimeException("Estado deve conter a sigla com 2 letras");
+        }
+
+        Endereco endereco = new Endereco();
+        endereco.setCep(cep);
+        endereco.setRua(rua);
+        endereco.setNumero(numero);
+        endereco.setBairro(bairro);
+        endereco.setCidade(cidade);
+        endereco.setEstado(estado);
+        return endereco;
+    }
+
+    private String campoObrigatorio(String valor, String nomeCampo) {
+        if (valor == null || valor.isBlank()) {
+            throw new RuntimeException(nomeCampo + " é obrigatório");
+        }
+        return valor.trim();
+    }
+
+    private String somenteDigitos(String valor) {
+        return valor == null ? "" : valor.replaceAll("\\D", "");
     }
 
     @Transactional(readOnly = true)
