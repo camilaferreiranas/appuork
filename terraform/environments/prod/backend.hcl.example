@@ -1,0 +1,5 @@
+# Copie para backend.hcl e ajuste. Depois: terraform init -backend-config=backend.hcl
+bucket         = "appuork-tfstate-SUA-CONTA"
+region         = "us-east-1"
+dynamodb_table = "appuork-tf-locks"
+encrypt        = true

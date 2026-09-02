@@ -1,0 +1,18 @@
+aws_region = "us-east-1"
+
+# Deploy do backend: URI do jar no S3 (opcional - pode fazer deploy manual/CI depois)
+# artifact_s3_uri = "s3://appuork-artifacts/appuork/app.jar"
+
+# TLS - habilite quando tiver dominio + certificado ACM
+# enable_https    = true
+# certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx"
+
+# Restringe acesso ao ALB (recomendado em staging)
+# allowed_http_cidrs = ["203.0.113.10/32"]
+
+# Variaveis de ambiente extras - semeadas UMA VEZ no Secrets Manager.
+# Depois edite direto no console/CLI (o Terraform ignora mudancas neste valor).
+# app_environment_secrets = {
+#   JWT_SECRET          = "troque-no-secrets-manager"
+#   CORS_ALLOWED_ORIGINS = "https://app.uork.com.br"
+# }

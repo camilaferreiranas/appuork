@@ -1,0 +1,82 @@
+#!/bin/bash
+set -euo pipefail
+
+REGION="${aws_region}"
+DB_SECRET_ARN="${db_secret_arn}"
+APP_SECRET_ARN="${app_secret_arn}"
+APP_PORT="${app_port}"
+ARTIFACT_S3_URI="${artifact_s3_uri}"
+APP_S3_BUCKET="${app_bucket}"
+
+APP_USER="appuork"
+APP_HOME="/opt/appuork"
+ENV_FILE="$APP_HOME/appuork.env"
+JAR_FILE="$APP_HOME/app.jar"
+
+echo "[user_data] instalando dependencias"
+dnf -y update
+dnf -y install ${java_package} jq
+
+# awscli ja vem na Amazon Linux 2023; garante presenca
+command -v aws >/dev/null 2>&1 || dnf -y install awscli
+
+id -u "$APP_USER" >/dev/null 2>&1 || useradd --system --home "$APP_HOME" --shell /usr/sbin/nologin "$APP_USER"
+mkdir -p "$APP_HOME"
+
+echo "[user_data] montando arquivo de ambiente a partir do Secrets Manager"
+umask 077
+: > "$ENV_FILE"
+for ARN in "$DB_SECRET_ARN" "$APP_SECRET_ARN"; do
+  aws secretsmanager get-secret-value \
+    --region "$REGION" \
+    --secret-id "$ARN" \
+    --query SecretString --output text \
+  | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> "$ENV_FILE"
+done
+{
+  echo "AWS_REGION=$REGION"
+  echo "APP_S3_BUCKET=$APP_S3_BUCKET"
+} >> "$ENV_FILE"
+chown "$APP_USER":"$APP_USER" "$ENV_FILE"
+chmod 600 "$ENV_FILE"
+
+if [ -n "$ARTIFACT_S3_URI" ]; then
+  echo "[user_data] baixando artefato $ARTIFACT_S3_URI"
+  aws s3 cp "$ARTIFACT_S3_URI" "$JAR_FILE"
+  chown "$APP_USER":"$APP_USER" "$JAR_FILE"
+fi
+
+echo "[user_data] criando unit systemd"
+cat > /etc/systemd/system/appuork.service <<EOF
+[Unit]
+Description=appuork backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=$APP_USER
+Group=$APP_USER
+EnvironmentFile=$ENV_FILE
+WorkingDirectory=$APP_HOME
+ExecStart=/usr/bin/java -jar $JAR_FILE
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable appuork.service
+
+if [ -f "$JAR_FILE" ]; then
+  echo "[user_data] iniciando appuork.service"
+  systemctl start appuork.service
+else
+  echo "[user_data] jar ausente - faca o deploy em $JAR_FILE e rode: systemctl start appuork"
+fi
