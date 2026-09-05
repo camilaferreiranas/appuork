@@ -19,13 +19,16 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final DocumentoValidator documentoValidator;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final FotoPerfilStorageService fotoPerfilStorageService;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                           DocumentoValidator documentoValidator,
-                          BCryptPasswordEncoder passwordEncoder) {
+                          BCryptPasswordEncoder passwordEncoder,
+                          FotoPerfilStorageService fotoPerfilStorageService) {
         this.usuarioRepository = usuarioRepository;
         this.documentoValidator = documentoValidator;
         this.passwordEncoder = passwordEncoder;
+        this.fotoPerfilStorageService = fotoPerfilStorageService;
     }
 
     public List<Usuario> listarUsuario(){
@@ -80,7 +83,8 @@ public class UsuarioService {
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
                 usuario.getTelefone(),
-                toEnderecoResponse(usuario.getEndereco())
+                toEnderecoResponse(usuario.getEndereco()),
+                fotoPerfilStorageService.gerarUrlLeitura(usuario.getFotoPerfilKey())
         );
     }
 
@@ -172,7 +176,8 @@ public class UsuarioService {
                 usuario.getTipoPessoa().name(),
                 usuario.getDocumento(),
                 usuario.getTelefone(),
-                toEnderecoResponse(usuario.getEndereco())
+                toEnderecoResponse(usuario.getEndereco()),
+                fotoPerfilStorageService.gerarUrlLeitura(usuario.getFotoPerfilKey())
         );
     }
 

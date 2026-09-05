@@ -36,6 +36,9 @@ public class Usuario {
 
     private String telefone;
 
+    @Column(name = "foto_perfil_key")
+    private String fotoPerfilKey;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private Instant dataCriacao;
@@ -68,6 +71,14 @@ public class Usuario {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public String getFotoPerfilKey() {
+        return fotoPerfilKey;
+    }
+
+    public void setFotoPerfilKey(String fotoPerfilKey) {
+        this.fotoPerfilKey = fotoPerfilKey;
     }
 
     public String getDocumento() {

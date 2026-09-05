@@ -5,6 +5,7 @@ import java.util.List;
 public record PrestadorDetalheDTO(
         Long id,
         String nome,
+        String fotoPerfilUrl,
         String descricao,
         List<String> categorias,
         Double mediaAvaliacoes,

@@ -9,6 +9,7 @@ import java.util.List;
 public record PerfilPrestadorDTO(
         Long id,
         String nome,
+        String fotoPerfilUrl,
         String descricao,
         String cidade,
         String estado,

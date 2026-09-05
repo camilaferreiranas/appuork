@@ -1,11 +1,15 @@
 package br.com.uork.appuork.controller;
 
 import br.com.uork.appuork.common.ApiResponse;
+import br.com.uork.appuork.dto.usuario.FotoUploadConfirmacaoDTO;
+import br.com.uork.appuork.dto.usuario.FotoUploadRequestDTO;
+import br.com.uork.appuork.dto.usuario.FotoUploadResponseDTO;
 import br.com.uork.appuork.dto.usuario.PerfilResponseDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioCriacaoDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioResponseDTO;
 import br.com.uork.appuork.dto.usuario.UsuarioUpdateDTO;
 import br.com.uork.appuork.models.Usuario;
+import br.com.uork.appuork.service.FotoPerfilStorageService;
 import br.com.uork.appuork.service.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +26,12 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final FotoPerfilStorageService fotoPerfilStorageService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(UsuarioService usuarioService,
+                             FotoPerfilStorageService fotoPerfilStorageService) {
         this.usuarioService = usuarioService;
+        this.fotoPerfilStorageService = fotoPerfilStorageService;
     }
 
     @GetMapping
@@ -81,6 +88,49 @@ public class UsuarioController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/perfil/foto/upload-url")
+    public ResponseEntity<ApiResponse<FotoUploadResponseDTO>> gerarUrlUploadFoto(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody FotoUploadRequestDTO dto) {
+        FotoUploadResponseDTO data = fotoPerfilStorageService.gerarUrlUpload(
+                jwt.getSubject(),
+                dto
+        );
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "URL de upload gerada com sucesso",
+                data
+        ));
+    }
+
+    @PatchMapping("/perfil/foto")
+    public ResponseEntity<ApiResponse<PerfilResponseDTO>> confirmarFotoPerfil(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody FotoUploadConfirmacaoDTO dto) {
+        fotoPerfilStorageService.confirmarUpload(jwt.getSubject(), dto.objectKey());
+        PerfilResponseDTO data = usuarioService.buscarPerfil(jwt.getSubject());
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Foto de perfil atualizada com sucesso",
+                data
+        ));
+    }
+
+    @DeleteMapping("/perfil/foto")
+    public ResponseEntity<ApiResponse<PerfilResponseDTO>> removerFotoPerfil(
+            @AuthenticationPrincipal Jwt jwt) {
+        fotoPerfilStorageService.removerFoto(jwt.getSubject());
+        PerfilResponseDTO data = usuarioService.buscarPerfil(jwt.getSubject());
+
+        return ResponseEntity.ok(new ApiResponse<>(
+                true,
+                "Foto de perfil removida com sucesso",
+                data
+        ));
     }
 
 }

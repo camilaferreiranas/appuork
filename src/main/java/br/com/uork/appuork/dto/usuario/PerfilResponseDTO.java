@@ -8,5 +8,6 @@ public record PerfilResponseDTO(
         String tipoPessoa,
         String documento,
         String telefone,
-        EnderecoResponseDTO endereco
+        EnderecoResponseDTO endereco,
+        String fotoPerfilUrl
 ) {}

@@ -36,17 +36,20 @@ public class PrestadorServicoService {
     private final CategoriaRepository categoriaRepository;
     private final PropostaRepository propostaRepository;
     private final PrestadorLocalizacaoCacheService localizacaoCacheService;
+    private final FotoPerfilStorageService fotoPerfilStorageService;
 
     public PrestadorServicoService(PrestadorServicoRepository prestadorServicoRepository,
                                    UsuarioRepository usuarioRepository,
                                    CategoriaRepository categoriaRepository,
                                    PropostaRepository propostaRepository,
-                                   PrestadorLocalizacaoCacheService localizacaoCacheService) {
+                                   PrestadorLocalizacaoCacheService localizacaoCacheService,
+                                   FotoPerfilStorageService fotoPerfilStorageService) {
         this.prestadorServicoRepository = prestadorServicoRepository;
         this.usuarioRepository = usuarioRepository;
         this.categoriaRepository = categoriaRepository;
         this.propostaRepository = propostaRepository;
         this.localizacaoCacheService = localizacaoCacheService;
+        this.fotoPerfilStorageService = fotoPerfilStorageService;
     }
 
     @Transactional
@@ -252,6 +255,9 @@ public class PrestadorServicoService {
         return new PrestadorListDTO(
                 prestador.getId(),
                 prestador.getUsuario().getNome(),
+                fotoPerfilStorageService.gerarUrlLeitura(
+                        prestador.getUsuario().getFotoPerfilKey()
+                ),
                 categorias,
                 prestador.getMediaAvaliacoes(),
                 calcularDistancia(prestador.getId(), latitude, longitude)
@@ -324,6 +330,9 @@ public class PrestadorServicoService {
         return new PrestadorDetalheDTO(
                 prestador.getId(),
                 prestador.getUsuario().getNome(),
+                fotoPerfilStorageService.gerarUrlLeitura(
+                        prestador.getUsuario().getFotoPerfilKey()
+                ),
                 prestador.getDescricao(),
                 categorias,
                 prestador.getMediaAvaliacoes(),
@@ -370,6 +379,9 @@ public class PrestadorServicoService {
         return new PerfilPrestadorDTO(
                 prestador.getId(),
                 prestador.getUsuario().getNome(),
+                fotoPerfilStorageService.gerarUrlLeitura(
+                        prestador.getUsuario().getFotoPerfilKey()
+                ),
                 prestador.getDescricao(),
                 prestador.getUsuario().getEndereco().getCidade(),
                 prestador.getUsuario().getEndereco().getEstado(),
